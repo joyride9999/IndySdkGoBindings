@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/cache"
+import "github.com/joyride9999/IndySdkGoBindings/cache"
 
 // GetCacheCredDef gets credential definition json data for specified credential definition id
 func GetCacheCredDef(ph int, wh int, sdid string, id string, options string) (string, error) {

@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/payments_v2"
+import "github.com/joyride9999/IndySdkGoBindings/payments_v2"
 
 // BuildGetPaymentSourcesWithFromRequest purge credential definition cache
 func BuildGetPaymentSourcesWithFromRequest(wh int, submitterDID string, paymentAddress string, from int64) (string, string, error) {

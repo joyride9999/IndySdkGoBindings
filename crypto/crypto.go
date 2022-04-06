@@ -44,7 +44,7 @@ import "C"
 import (
 	"encoding/json"
 	"errors"
-	"indySDK/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"unsafe"
 )
 

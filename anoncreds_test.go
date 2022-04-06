@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/google/uuid"
-	"indySDK/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"testing"
 )
 

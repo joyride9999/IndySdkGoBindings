@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/did"
+import "github.com/joyride9999/IndySdkGoBindings/did"
 
 // CreateAndStoreDID creates and DID with keys ... nothing is written to blockchain
 // returns did, verkey, error

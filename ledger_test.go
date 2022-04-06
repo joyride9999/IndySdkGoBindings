@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/stretchr/testify/assert"
-	"indySDK/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"strconv"
 	"testing"
 )

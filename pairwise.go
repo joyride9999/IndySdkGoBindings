@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/pairwise"
+import "github.com/joyride9999/IndySdkGoBindings/pairwise"
 
 // IsPairwiseExists purge credential definition cache
 func IsPairwiseExists(wh int, theirDID string) (bool, error) {

@@ -14,9 +14,9 @@ package indySDK
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"indySDK/dbUtils"
-	"indySDK/indyUtils"
-	"indySDK/wallet"
+	"github.com/joyride9999/IndySdkGoBindings/dbUtils"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/wallet"
 	"testing"
 )
 

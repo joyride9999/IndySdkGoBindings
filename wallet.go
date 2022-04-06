@@ -13,7 +13,7 @@
 package indySDK
 
 import (
-	"indySDK/wallet"
+	"github.com/joyride9999/IndySdkGoBindings/wallet"
 )
 
 // CreateWallet creates a new secure wallet with the given unique name

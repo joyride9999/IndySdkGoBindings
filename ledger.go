@@ -14,7 +14,7 @@ package indySDK
 
 import (
 	"github.com/viney-shih/go-lock"
-	"indySDK/ledger"
+	"github.com/joyride9999/IndySdkGoBindings/ledger"
 	"sync"
 	"time"
 )

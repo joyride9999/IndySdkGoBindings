@@ -93,7 +93,7 @@ extern void toUnqualifiedCB(indy_handle_t, indy_error_t, char*);
 import "C"
 import (
 	"errors"
-	"indySDK/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"unsafe"
 )
 

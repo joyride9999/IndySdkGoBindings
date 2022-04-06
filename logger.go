@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/logger"
+import "github.com/joyride9999/IndySdkGoBindings/logger"
 
 func IndySetLogger() {
 	logger.IndySetLogger()

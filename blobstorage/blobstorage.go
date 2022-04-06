@@ -23,7 +23,7 @@ package blobstorage
 import "C"
 import (
 	"errors"
-	"indySDK/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"unsafe"
 )
 

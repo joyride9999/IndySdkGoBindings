@@ -49,7 +49,7 @@ extern void closeWalletSearchCB(indy_handle_t, indy_error_t);
 import "C"
 import (
 	"errors"
-	"indySDK/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"unsafe"
 )
 

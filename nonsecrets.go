@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/nonsecrets"
+import "github.com/joyride9999/IndySdkGoBindings/nonsecrets"
 
 // IndyAddWalletRecord Create a new non-secret record in the wallet.
 func IndyAddWalletRecord(wh int, recordType string, recordId string, recordValue string, tagsJson string) (err error) {

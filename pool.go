@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/pool"
+import "github.com/joyride9999/IndySdkGoBindings/pool"
 
 func SetPoolProtocolVersion(pb uint64) error {
 	channel := pool.IndySetProtocolVersion(pb)

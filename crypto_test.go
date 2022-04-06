@@ -14,8 +14,8 @@ package indySDK
 import (
 	"encoding/json"
 	"fmt"
-	"indySDK/crypto"
-	"indySDK/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/crypto"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"testing"
 )
 

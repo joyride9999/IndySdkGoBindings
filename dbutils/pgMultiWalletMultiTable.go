@@ -22,8 +22,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"indySDK/indyUtils"
-	"indySDK/wallet"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/wallet"
 	"regexp"
 	"strconv"
 )

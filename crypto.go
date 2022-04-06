@@ -13,7 +13,7 @@
 package indySDK
 
 import "C"
-import "indySDK/crypto"
+import "github.com/joyride9999/IndySdkGoBindings/crypto"
 
 // CreateKey creates keys pair and stores in the wallet
 func CreateKey(wh int, key crypto.Key) (string, error) {

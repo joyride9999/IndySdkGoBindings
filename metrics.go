@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/metrics"
+import "github.com/joyride9999/IndySdkGoBindings/metrics"
 
 // Collect collect metrics
 func Collect() (string, error) {

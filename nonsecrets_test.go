@@ -13,7 +13,7 @@ package indySDK
 
 import (
 	"github.com/Jeffail/gabs/v2"
-	"indySDK/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"testing"
 )
 

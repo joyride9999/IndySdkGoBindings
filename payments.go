@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/payments"
+import "github.com/joyride9999/IndySdkGoBindings/payments"
 
 // CreatePaymentAddress creates the payment address for specified payment method
 func CreatePaymentAddress(wh int, paymentMethod string, options payments.Config) (string, error) {

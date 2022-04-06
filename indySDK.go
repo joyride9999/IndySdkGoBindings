@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Jeffail/gabs/v2"
-	"indySDK/blobstorage"
+	"github.com/joyride9999/IndySdkGoBindings/blobstorage"
 	"io"
 	"math"
 	"math/big"

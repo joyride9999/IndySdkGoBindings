@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/blobstorage"
+import "github.com/joyride9999/IndySdkGoBindings/blobstorage"
 
 // IndyOpenBlobStorageReader opens blob reader
 func IndyOpenBlobStorageReader(blobStorageType string, config string) (blobHandle int, err error) {

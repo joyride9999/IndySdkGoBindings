@@ -1,6 +1,6 @@
 package indySDK
 
-import "indySDK/mod"
+import "github.com/joyride9999/IndySdkGoBindings/mod"
 
 // SetRuntimeConfig set libindy runtime configuration
 func SetRuntimeConfig(config mod.Config) error {

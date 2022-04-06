@@ -12,7 +12,7 @@
 
 package indySDK
 
-import "indySDK/anoncreds"
+import "github.com/joyride9999/IndySdkGoBindings/anoncreds"
 
 // CreateRevocationState Create revocation state for a credential in the particular time moment
 func CreateRevocationState(blobReaderHandle int, revRegDefJson string, revRegDeltaJson string, timestamp uint64, credRevId string) (revStateJson string, err error) {
