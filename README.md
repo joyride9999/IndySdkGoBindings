@@ -1,12 +1,14 @@
 # Indy SDK Go Bindings
 
 Go bindings for hyperledger indy sdk
+Installation go get github.com/joyride9999/IndySdkGoBindings
 
 ## Window usage
 - Install go (https://golang.org)
 - Install gcc (http://mingw-w64.org/doku.php) and add gcc to path
 - Optional - install IDE (https://www.jetbrains.com/go/)
-- Install IndySDK for windows (https://hyperledger-indy.readthedocs.io/projects/sdk/en/latest/docs/build-guides/windows-build.html)
+- Install IndySDK for windows (https://hyperledger-indy.readthedocs.io/projects/sdk/en/latest/docs/build-guides/windows-build.html). 
+    - For windows the dlls/lib files needs to be copied to the lib folder from this project. Files can be downloaded from here https://repo.sovrin.org/windows/libindy/
 ## Linux
 - Install go
 - Install indy-sdk (more exactly libindy). Details can be found here https://github.com/hyperledger/indy-sdk
