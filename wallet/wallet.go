@@ -117,9 +117,8 @@ extern indy_error_t freeSearchWalletCB(indy_handle_t, indy_handle_t);
 import "C"
 
 import (
-	"encoding/json"
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 	"unsafe"
 )
 
@@ -134,22 +133,8 @@ func createWalletCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) {
 }
 
 // CreateWallet creates a new secure wallet with the given unique id
-func CreateWallet(config Config, credential Credential) chan indyUtils.IndyResult {
+func CreateWallet(config, credential unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
-
-	jsonConfig, err := json.Marshal(config)
-	if err != nil {
-		go func() { indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err}) }()
-		return future
-	}
-	jsonCredential, err := json.Marshal(credential)
-	if err != nil {
-		go func() { indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err}) }()
-		return future
-	}
-
-	configString := string(jsonConfig)
-	credentialString := string(jsonCredential)
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
@@ -189,8 +174,8 @@ func CreateWallet(config Config, credential Credential) chan indyUtils.IndyResul
 	*/
 	// Call indy_create_wallet
 	res := C.indy_create_wallet(commandHandle,
-		C.CString(configString),
-		C.CString(credentialString),
+		(*C.char)(config),
+		(*C.char)(credential),
 		(C.cb_createWallet)(unsafe.Pointer(C.createWalletCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -246,26 +231,8 @@ func openWalletCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, retHa
 }
 
 // OpenWallet opens an existing indy wallet
-func OpenWallet(config Config, credential Credential) chan indyUtils.IndyResult {
+func OpenWallet(config, credential unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
-
-	jsonConfig, err := json.Marshal(config)
-	if err != nil {
-		go func() {
-			indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err})
-		}()
-		return future
-	}
-	jsonCredential, err := json.Marshal(credential)
-	if err != nil {
-		go func() {
-			indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err})
-		}()
-		return future
-	}
-
-	configString := string(jsonConfig)
-	credentialString := string(jsonCredential)
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
@@ -314,8 +281,8 @@ func OpenWallet(config Config, credential Credential) chan indyUtils.IndyResult 
 
 	// Call indy_open_wallet
 	res := C.indy_open_wallet(commandHandle,
-		C.CString(configString),
-		C.CString(credentialString),
+		(*C.char)(config),
+		(*C.char)(credential),
 		(C.cb_openWallet)(unsafe.Pointer(C.openWalletCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -339,26 +306,8 @@ func deleteWalletCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) {
 }
 
 // DeleteWallet deletes an existing indy wallet
-func DeleteWallet(config Config, credentials Credential) chan indyUtils.IndyResult {
+func DeleteWallet(config, credentials unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
-
-	jsonConfig, err := json.Marshal(config)
-	if err != nil {
-		go func() {
-			indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err})
-		}()
-		return future
-	}
-	jsonCredential, err := json.Marshal(credentials)
-	if err != nil {
-		go func() {
-			indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err})
-		}()
-		return future
-	}
-
-	configString := string(jsonConfig)
-	credentialString := string(jsonCredential)
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
@@ -399,8 +348,8 @@ func DeleteWallet(config Config, credentials Credential) chan indyUtils.IndyResu
 
 	// Call indy_delete_wallet
 	res := C.indy_delete_wallet(commandHandle,
-		C.CString(configString),
-		C.CString(credentialString),
+		(*C.char)(config),
+		(*C.char)(credentials),
 		(C.cb_deleteWallet)(unsafe.Pointer(C.deleteWalletCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -424,18 +373,8 @@ func generateWalletKeyCB(commandHandle C.indy_handle_t, indyError C.indy_error_t
 }
 
 // GenerateWalletKey generates wallet master key
-func GenerateWalletKey(config Config) chan indyUtils.IndyResult {
+func GenerateWalletKey(config unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
-
-	jsonConfig, err := json.Marshal(config)
-	if err != nil {
-		go func() {
-			indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err})
-		}()
-		return future
-	}
-
-	configString := string(jsonConfig)
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
@@ -454,7 +393,7 @@ func GenerateWalletKey(config Config) chan indyUtils.IndyResult {
 
 	// Call indy_generate_wallet_key
 	res := C.indy_generate_wallet_key(commandHandle,
-		C.CString(configString),
+		(*C.char)(config),
 		(C.cb_generateWalletKey)(unsafe.Pointer(C.generateWalletKeyCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -478,18 +417,8 @@ func exportWalletCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) {
 }
 
 // ExportWallet exports opened wallet
-func ExportWallet(wh int, config ExportConfig) chan indyUtils.IndyResult {
+func ExportWallet(wh int, config unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
-
-	jsonConfig, err := json.Marshal(config)
-	if err != nil {
-		go func() {
-			indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err})
-		}()
-		return future
-	}
-
-	configString := string(jsonConfig)
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
@@ -512,7 +441,7 @@ func ExportWallet(wh int, config ExportConfig) chan indyUtils.IndyResult {
 	// Call indy_export_wallet
 	res := C.indy_export_wallet(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(configString),
+		(*C.char)(config),
 		(C.cb_exportWallet)(unsafe.Pointer(C.exportWalletCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -536,34 +465,8 @@ func importWalletCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) {
 }
 
 // ImportWallet imports opened wallet
-func ImportWallet(config Config, credentials Credential, importConfig ImportConfig) chan indyUtils.IndyResult {
+func ImportWallet(config, credentials, importConfig unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
-
-	jsonConfig, err := json.Marshal(config)
-	if err != nil {
-		go func() {
-			indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err})
-		}()
-		return future
-	}
-	jsonCredential, err := json.Marshal(credentials)
-	if err != nil {
-		go func() {
-			indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err})
-		}()
-		return future
-	}
-	jsonImportConfig, err := json.Marshal(importConfig)
-	if err != nil {
-		go func() {
-			indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err})
-		}()
-		return future
-	}
-
-	configString := string(jsonConfig)
-	credentialString := string(jsonCredential)
-	importConfigString := string(jsonImportConfig)
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
@@ -611,9 +514,9 @@ func ImportWallet(config Config, credentials Credential, importConfig ImportConf
 
 	// Call indy_import_wallet
 	res := C.indy_import_wallet(commandHandle,
-		C.CString(configString),
-		C.CString(credentialString),
-		C.CString(importConfigString),
+		(*C.char)(config),
+		(*C.char)(credentials),
+		(*C.char)(importConfig),
 		(C.cb_importWallet)(unsafe.Pointer(C.importWalletCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -829,7 +732,7 @@ func getRecordIdWalletCB(storageHandle C.indy_handle_t, recordHandle C.indy_hand
 		return (C.indy_error_t)(indyError) // error
 	}
 
-	*recordID = C.CString(sRecordID)
+	*recordID = (*C.char)(sRecordID)
 	return (C.indy_error_t)(indyError) // Success
 }
 
@@ -847,7 +750,7 @@ func getRecordTypeWalletCB(storageHandle C.indy_handle_t, recordHandle C.indy_ha
 		return (C.indy_error_t)(indyError) //error
 	}
 
-	*recordType = C.CString(sRecordType)
+	*recordType = (*C.char)(sRecordType)
 	return (C.indy_error_t)(0) // Success
 }
 
@@ -865,10 +768,9 @@ func getRecordValueWalletCB(handle C.indy_handle_t, recordHandle C.indy_handle_t
 		return (C.indy_error_t)(indyErr)
 	}
 
-	cBufferValue := (*C.uint8_t)(C.CBytes(bufValue))
-	*recordValue = cBufferValue
+	*recordValue = (*C.indy_u8_t)(bufValue.Value)
 
-	bufferLength := uint32(len(bufValue))
+	bufferLength := uint32(bufValue.Len)
 	cBufferSize := (C.uint32_t)(bufferLength)
 	*recordValueLen = cBufferSize
 
@@ -889,7 +791,7 @@ func getRecordTagsWalletCB(storageHandle C.indy_handle_t, recordHandle C.indy_ha
 		return (C.indy_error_t)(indyError) // error
 	}
 
-	*tagsJson = C.CString(recordTags)
+	*tagsJson = (*C.char)(recordTags)
 	return (C.indy_error_t)(indyError) // Success
 }
 
@@ -921,8 +823,7 @@ func getStorageMetadataWalletCB(storageHandle C.indy_handle_t, metadata **C.char
 		return (C.indy_error_t)(indyError) // error
 	}
 
-	indyMetadata := C.CString(sMetadata)
-	*metadata = indyMetadata
+	*metadata = (*C.char)(sMetadata)
 	*metadataHandle = C.indy_handle_t(iMetadata)
 
 	return (C.indy_error_t)(0) // Success
@@ -1056,13 +957,13 @@ func registerWalletStorageCB(commandHandle C.indy_handle_t, indyError C.indy_err
 
 var walletStorageGlobal IWalletStorage
 
-func RegisterWalletStorage(storageType string, storage IWalletStorage) chan indyUtils.IndyResult {
+func RegisterWalletStorage(storageType unsafe.Pointer, storage IWalletStorage) chan indyUtils.IndyResult {
 	walletStorageGlobal = storage
 
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 	res := C.indy_register_wallet_storage(commandHandle,
-		C.CString(storageType),
+		(*C.char)(storageType),
 		(C.cb_createWalletCustom)(unsafe.Pointer(C.createWalletCustomCB)),
 		(C.cb_openWalletCustom)(unsafe.Pointer(C.openWalletCustomCB)),
 		(C.cb_closeWalletCustom)(unsafe.Pointer(C.closeWalletCustomCB)),

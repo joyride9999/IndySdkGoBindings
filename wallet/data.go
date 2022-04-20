@@ -19,6 +19,7 @@ package wallet
 #include <stdlib.h>
 */
 import "C"
+import "unsafe"
 
 // StorageConfig represents Indy wallet storage config
 type StorageConfig struct {
@@ -64,6 +65,11 @@ type InfoWallet struct {
 	Handle   int
 }
 
+type RecordValue struct {
+	Len   int
+	Value unsafe.Pointer
+}
+
 type IWalletStorage interface {
 	Create(name string, config string, credentialsJson string, metadata string) (int, error)
 	Open(name string, config string, credentials string) (int, int, error)
@@ -76,12 +82,12 @@ type IWalletStorage interface {
 	DeleteRecordTags(handle int, type_ string, id string, tagsJson string) (int, error)
 	DeleteRecord(handle int, type_ string, id string) (int, error)
 	GetRecordHandle(handle int, type_ string, id string, optionsJson string) (int, int, error)
-	GetRecordId(handle int, recordHandle int) (string, int, error)
-	GetRecordType(handle int, recordHandle int) (string, int, error)
-	GetRecordValue(handle int, recordHandle int) ([]byte, int, error)
-	GetRecordTags(handle int, recordHandle int) (string, int, error)
+	GetRecordId(handle int, recordHandle int) (unsafe.Pointer, int, error)
+	GetRecordType(handle int, recordHandle int) (unsafe.Pointer, int, error)
+	GetRecordValue(handle int, recordHandle int) (RecordValue, int, error)
+	GetRecordTags(handle int, recordHandle int) (unsafe.Pointer, int, error)
 	FreeRecord(handle int, recordHandle int) error
-	GetStorageMetadata(handle int) (string, int, int, error)
+	GetStorageMetadata(handle int) (unsafe.Pointer, int, int, error)
 	SetStorageMetadata(handle int, metadata string) (int, error)
 	FreeStorageMetadata(handle int, metadataHandle int) error
 	OpenSearch(handle int, type_ string, query string, options string) (int, int, error)

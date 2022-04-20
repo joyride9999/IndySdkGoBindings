@@ -12,11 +12,22 @@
 
 package indySDK
 
-import "github.com/joyride9999/IndySdkGoBindings/pairwise"
+/*
+#include <stdlib.h>
+*/
+import "C"
+import (
+	"github.com/joyride9999/IndySdkGoBindings/pairwise"
+	"unsafe"
+)
 
 // IsPairwiseExists purge credential definition cache
 func IsPairwiseExists(wh int, theirDID string) (bool, error) {
-	channel := pairwise.IsPairwiseExists(wh, theirDID)
+
+	upTheirDid := unsafe.Pointer(C.CString(theirDID))
+	defer C.free(upTheirDid)
+
+	channel := pairwise.IsPairwiseExists(wh, upTheirDid)
 	result := <-channel
 	if result.Error != nil {
 		return false, result.Error
@@ -25,8 +36,16 @@ func IsPairwiseExists(wh int, theirDID string) (bool, error) {
 }
 
 // CreatePairwise creates pairwise
-func CreatePairwise(wh int, theirDID string, myDID, meta string) error {
-	channel := pairwise.CreatePairwise(wh, theirDID, myDID, meta)
+func CreatePairwise(wh int, theirDID, myDID, meta string) error {
+
+	upTheirDid := unsafe.Pointer(C.CString(theirDID))
+	defer C.free(upTheirDid)
+	upMyDid := unsafe.Pointer(C.CString(myDID))
+	defer C.free(upMyDid)
+	upMeta := unsafe.Pointer(C.CString(meta))
+	defer C.free(upMeta)
+
+	channel := pairwise.CreatePairwise(wh, upTheirDid, upMyDid, upMeta)
 	result := <-channel
 	return result.Error
 }
@@ -43,7 +62,10 @@ func ListPairwise(wh int) (string, error) {
 
 // GetPairwise gets pairwise information for specific their_did
 func GetPairwise(wh int, theirDID string) (string, error) {
-	channel := pairwise.GetPairwise(wh, theirDID)
+	upTheirDid := unsafe.Pointer(C.CString(theirDID))
+	defer C.free(upTheirDid)
+
+	channel := pairwise.GetPairwise(wh, upTheirDid)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -53,7 +75,12 @@ func GetPairwise(wh int, theirDID string) (string, error) {
 
 // SetPairwiseMetadata get list of saved pairwise
 func SetPairwiseMetadata(wh int, theirDID string, meta string) error {
-	channel := pairwise.SetPairwiseMetadata(wh, theirDID, meta)
+	upTheirDid := unsafe.Pointer(C.CString(theirDID))
+	defer C.free(upTheirDid)
+	upMeta := unsafe.Pointer(C.CString(meta))
+	defer C.free(upMeta)
+
+	channel := pairwise.SetPairwiseMetadata(wh, upTheirDid, upMeta)
 	result := <-channel
 	return result.Error
 }

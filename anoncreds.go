@@ -12,11 +12,26 @@
 
 package indySDK
 
-import "github.com/joyride9999/IndySdkGoBindings/anoncreds"
+/*
+#include <stdlib.h>
+*/
+import "C"
+import (
+	"github.com/joyride9999/IndySdkGoBindings/anoncreds"
+	"unsafe"
+)
 
 // CreateRevocationState Create revocation state for a credential in the particular time moment
 func CreateRevocationState(blobReaderHandle int, revRegDefJson string, revRegDeltaJson string, timestamp uint64, credRevId string) (revStateJson string, err error) {
-	channel := anoncreds.CreateRevocationState(blobReaderHandle, revRegDefJson, revRegDeltaJson, timestamp, credRevId)
+
+	upRevRegDefJson := unsafe.Pointer(C.CString(revRegDefJson))
+	upRevRegDeltaJson := unsafe.Pointer(C.CString(revRegDeltaJson))
+	upCredRevId := unsafe.Pointer(C.CString(credRevId))
+	defer C.free(upRevRegDefJson)
+	defer C.free(upRevRegDeltaJson)
+	defer C.free(upCredRevId)
+
+	channel := anoncreds.CreateRevocationState(blobReaderHandle, upRevRegDefJson, upRevRegDeltaJson, timestamp, upCredRevId)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -26,7 +41,13 @@ func CreateRevocationState(blobReaderHandle int, revRegDefJson string, revRegDel
 
 // IssuerRevokeCredential   Revoke a credential identified by a cred_revoc_id (returned by issuer_create_credential).
 func IssuerRevokeCredential(issuerHandle int, blobReaderHandle int, revRegId string, credRevId string) (revRegDeltaJson string, err error) {
-	channel := anoncreds.IssuerRevokeCredential(issuerHandle, blobReaderHandle, revRegId, credRevId)
+
+	upRevRegId := unsafe.Pointer(C.CString(revRegId))
+	upCredRevId := unsafe.Pointer(C.CString(credRevId))
+	defer C.free(upRevRegId)
+	defer C.free(upCredRevId)
+
+	channel := anoncreds.IssuerRevokeCredential(issuerHandle, blobReaderHandle, upRevRegId, upCredRevId)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -34,14 +55,21 @@ func IssuerRevokeCredential(issuerHandle int, blobReaderHandle int, revRegId str
 	return result.Results[0].(string), result.Error
 }
 
-func IssuerCreateAndStoreRevocReg(wh int,
-	issuerDid string,
-	revocDefType string,
-	tag string,
-	credDefId string,
-	configJson string,
-	blobHandle int) (revocRegId string, revocRegDefJson string, revocRegEntryJson string, err error) {
-	channel := anoncreds.CreateAndStoreRevocReg(wh, issuerDid, revocDefType, tag, credDefId, configJson, blobHandle)
+func IssuerCreateAndStoreRevocReg(wh int, issuerDid string, revocDefType string, tag string, credDefId string,
+	configJson string, blobHandle int) (revocRegId string, revocRegDefJson string, revocRegEntryJson string, err error) {
+
+	upIssuerDid := unsafe.Pointer(C.CString(issuerDid))
+	defer C.free(upIssuerDid)
+	upRevocDefType := unsafe.Pointer(C.CString(revocDefType))
+	defer C.free(upRevocDefType)
+	upTag := unsafe.Pointer(C.CString(tag))
+	defer C.free(upTag)
+	upCredDefId := unsafe.Pointer(C.CString(credDefId))
+	defer C.free(upCredDefId)
+	upConfigJson := unsafe.Pointer(C.CString(configJson))
+	defer C.free(upConfigJson)
+
+	channel := anoncreds.CreateAndStoreRevocReg(wh, upIssuerDid, upRevocDefType, upTag, upCredDefId, upConfigJson, blobHandle)
 	result := <-channel
 	if result.Error != nil {
 		return "", "", "", result.Error
@@ -50,7 +78,17 @@ func IssuerCreateAndStoreRevocReg(wh int,
 }
 
 func IssuerCreateSchema(submitterDid string, name string, version string, attrs string) (schemaId string, schemaJson string, err error) {
-	channel := anoncreds.IssuerCreateSchema(submitterDid, name, version, attrs)
+
+	upSubmitterDid := unsafe.Pointer(C.CString(submitterDid))
+	defer C.free(upSubmitterDid)
+	upName := unsafe.Pointer(C.CString(name))
+	defer C.free(upName)
+	upVersion := unsafe.Pointer(C.CString(version))
+	defer C.free(upVersion)
+	upAttrs := unsafe.Pointer(C.CString(attrs))
+	defer C.free(upAttrs)
+
+	channel := anoncreds.IssuerCreateSchema(upSubmitterDid, upName, upVersion, upAttrs)
 	result := <-channel
 	if result.Error != nil {
 		return "", "", result.Error
@@ -59,7 +97,19 @@ func IssuerCreateSchema(submitterDid string, name string, version string, attrs 
 }
 
 func IssuerCreateAndStoreCredentialDefinition(wh int, did string, schema string, tag string, signatureType string, configJs string) (credDefId string, credDefJson string, err error) {
-	channel := anoncreds.IssuerCreateAndStoreCredentialDef(wh, did, schema, tag, signatureType, configJs)
+
+	upDid := unsafe.Pointer(C.CString(did))
+	defer C.free(upDid)
+	upSchema := unsafe.Pointer(C.CString(schema))
+	defer C.free(upSchema)
+	upTag := unsafe.Pointer(C.CString(tag))
+	defer C.free(upTag)
+	upSignatureType := unsafe.Pointer(C.CString(signatureType))
+	defer C.free(upSignatureType)
+	upConfigJson := unsafe.Pointer(C.CString(configJs))
+	defer C.free(upConfigJson)
+
+	channel := anoncreds.IssuerCreateAndStoreCredentialDef(wh, upDid, upSchema, upTag, upSignatureType, upConfigJson)
 	result := <-channel
 	if result.Error != nil {
 		return "", "", result.Error
@@ -68,7 +118,13 @@ func IssuerCreateAndStoreCredentialDefinition(wh int, did string, schema string,
 }
 
 func IssuerRotateCredentialDefStart(walletHandle int, credDefID string, configJson string) (string, error) {
-	channel := anoncreds.IssuerRotateCredentialDefStart(walletHandle, credDefID, configJson)
+
+	upCredDefId := unsafe.Pointer(C.CString(credDefID))
+	defer C.free(upCredDefId)
+	upConfigJson := unsafe.Pointer(C.CString(configJson))
+	defer C.free(upConfigJson)
+
+	channel := anoncreds.IssuerRotateCredentialDefStart(walletHandle, upCredDefId, upConfigJson)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -77,14 +133,20 @@ func IssuerRotateCredentialDefStart(walletHandle int, credDefID string, configJs
 }
 
 func IssuerRotateCredentialDefApply(walletHandle int, credDefID string) error {
-	channel := anoncreds.IssuerRotateCredentialDefApply(walletHandle, credDefID)
+	upCredDefId := unsafe.Pointer(C.CString(credDefID))
+	defer C.free(upCredDefId)
+
+	channel := anoncreds.IssuerRotateCredentialDefApply(walletHandle, upCredDefId)
 	result := <-channel
 	return result.Error
 }
 
 // IssuerCreateCredentialOffer Create credential offer
 func IssuerCreateCredentialOffer(wh int, credDefId string) (credOffer string, err error) {
-	channel := anoncreds.IssuerCreateCredentialOffer(wh, credDefId)
+	upCredDefId := unsafe.Pointer(C.CString(credDefId))
+	defer C.free(upCredDefId)
+
+	channel := anoncreds.IssuerCreateCredentialOffer(wh, upCredDefId)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -94,7 +156,11 @@ func IssuerCreateCredentialOffer(wh int, credDefId string) (credOffer string, er
 
 // ProverCreateMasterSecret creates a master secret with a given name and stores it in the wallet.
 func ProverCreateMasterSecret(wh int, masterSecretName string) (idMasterSecret string, err error) {
-	channel := anoncreds.ProverCreateMasterSecret(wh, masterSecretName)
+
+	upSecretName := unsafe.Pointer(GetOptionalValue(masterSecretName))
+	defer C.free(upSecretName)
+
+	channel := anoncreds.ProverCreateMasterSecret(wh, upSecretName)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -103,11 +169,19 @@ func ProverCreateMasterSecret(wh int, masterSecretName string) (idMasterSecret s
 }
 
 // ProverCreateCredentialRequest Creates a credential request for the given credential offer.
-func ProverCreateCredentialRequest(wh int, proverDID string,
-	credOfferJSON string,
-	credDefinitionJSON string,
+func ProverCreateCredentialRequest(wh int, proverDID string, credOfferJSON string, credDefinitionJSON string,
 	masterSecretID string) (credentialRequest string, credentialRequestMetadata string, err error) {
-	channel := anoncreds.ProverCreateCredentialRequest(wh, proverDID, credOfferJSON, credDefinitionJSON, masterSecretID)
+
+	upProverDid := unsafe.Pointer(C.CString(proverDID))
+	defer C.free(upProverDid)
+	upCredOfferJson := unsafe.Pointer(C.CString(credOfferJSON))
+	defer C.free(upCredOfferJson)
+	upCredDefJson := unsafe.Pointer(C.CString(credDefinitionJSON))
+	defer C.free(upCredDefJson)
+	upMasterSecretId := unsafe.Pointer(C.CString(masterSecretID))
+	defer C.free(upMasterSecretId)
+
+	channel := anoncreds.ProverCreateCredentialRequest(wh, upProverDid, upCredOfferJson, upCredDefJson, upMasterSecretId)
 	result := <-channel
 	if result.Error != nil {
 		return "", "", result.Error
@@ -116,13 +190,19 @@ func ProverCreateCredentialRequest(wh int, proverDID string,
 }
 
 // IssuerCreateCredential Creates a credential
-func IssuerCreateCredential(whIssuer int,
-	credOfferJson string,
-	credRequestJson string,
-	credValueJson string,
-	revocRegistryId string,
+func IssuerCreateCredential(whIssuer int, credOfferJson, credRequestJson, credValueJson, revocRegistryId string,
 	blobHandle int) (credentialJson string, credentialRevocationId string, revocationRegistryDeltaJson string, err error) {
-	channel := anoncreds.IssuerCreateCredential(whIssuer, credOfferJson, credRequestJson, credValueJson, revocRegistryId, blobHandle)
+
+	upCredOfferJson := unsafe.Pointer(C.CString(credOfferJson))
+	defer C.free(upCredOfferJson)
+	upCredRequestJson := unsafe.Pointer(C.CString(credRequestJson))
+	defer C.free(upCredRequestJson)
+	upCredValueJson := unsafe.Pointer(C.CString(credValueJson))
+	defer C.free(upCredValueJson)
+	upRevRegId := unsafe.Pointer(GetOptionalValue(revocRegistryId))
+	defer C.free(upRevRegId)
+
+	channel := anoncreds.IssuerCreateCredential(whIssuer, upCredOfferJson, upCredRequestJson, upCredValueJson, upRevRegId, blobHandle)
 	result := <-channel
 	if result.Error != nil {
 		return "", "", "", result.Error
@@ -131,8 +211,20 @@ func IssuerCreateCredential(whIssuer int,
 }
 
 // ProverStoreCredential stores the credential in the wallet
-func ProverStoreCredential(whProver int, credentialIdOptional string, credRequestMetadataJson string, credJson string, credDefJson string, revocRegDefJsonOptional string) (credentialId string, err error) {
-	channel := anoncreds.ProverStoreCredential(whProver, credentialIdOptional, credRequestMetadataJson, credJson, credDefJson, revocRegDefJsonOptional)
+func ProverStoreCredential(whProver int, credentialIdOptional, credRequestMetadataJson, credJson, credDefJson, revocRegDefJsonOptional string) (credentialId string, err error) {
+
+	upCredId := unsafe.Pointer(GetOptionalValue(credentialIdOptional))
+	defer C.free(upCredId)
+	upCredRequestMetadataJson := unsafe.Pointer(C.CString(credRequestMetadataJson))
+	defer C.free(upCredRequestMetadataJson)
+	upCredentialJson := unsafe.Pointer(C.CString(credJson))
+	defer C.free(upCredentialJson)
+	upCredDefJson := unsafe.Pointer(C.CString(credDefJson))
+	defer C.free(upCredDefJson)
+	upRevRegDef := unsafe.Pointer(GetOptionalValue(revocRegDefJsonOptional))
+	defer C.free(upRevRegDef)
+
+	channel := anoncreds.ProverStoreCredential(whProver, upCredId, upCredRequestMetadataJson, upCredentialJson, upCredDefJson, upRevRegDef)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -142,13 +234,21 @@ func ProverStoreCredential(whProver int, credentialIdOptional string, credReques
 
 // ProverDeleteCredential deletes identified credential from wallet
 func ProverDeleteCredential(walletHandle int, credentialID string) error {
-	channel := anoncreds.ProverDeleteCredential(walletHandle, credentialID)
+
+	upCredentialId := unsafe.Pointer(C.CString(credentialID))
+	defer C.free(upCredentialId)
+
+	channel := anoncreds.ProverDeleteCredential(walletHandle, upCredentialId)
 	result := <-channel
 	return result.Error
 }
 
 func ProverGetCredentials(walletHandle int, filterJson string) (string, error) {
-	channel := anoncreds.ProverGetCredentials(walletHandle, filterJson)
+
+	upFilter := unsafe.Pointer(C.CString(filterJson))
+	defer C.free(upFilter)
+
+	channel := anoncreds.ProverGetCredentials(walletHandle, upFilter)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -168,7 +268,14 @@ func GenerateNonce() (nonce string, err error) {
 
 // ProverSearchForCredentialForProofReq search for credential and returns a search handle
 func ProverSearchForCredentialForProofReq(wh int, proofRequestJson, extraQueryJson string) (searchHandle int, err error) {
-	channel := anoncreds.ProverSearchForCredentialsForProofReq(wh, proofRequestJson, extraQueryJson)
+
+	upProofRequest := unsafe.Pointer(C.CString(proofRequestJson))
+	defer C.free(upProofRequest)
+
+	upExtraQuery := unsafe.Pointer(GetOptionalValue(extraQueryJson))
+	defer C.free(upExtraQuery)
+
+	channel := anoncreds.ProverSearchForCredentialsForProofReq(wh, upProofRequest, upExtraQuery)
 	result := <-channel
 	if result.Error != nil {
 		return -1, result.Error
@@ -188,7 +295,11 @@ func ProverCloseCredentialsSearchForProofReq(searchHandle int) (err error) {
 
 // ProverFetchCredentialsForProofReq - gets credential out of a search handle
 func ProverFetchCredentialsForProofReq(sh int, itemReferent string, count int) (credentialJson string, err error) {
-	channel := anoncreds.ProverFetchCredentialsForProofReq(sh, itemReferent, count)
+
+	upItemReferent := unsafe.Pointer(C.CString(itemReferent))
+	defer C.free(upItemReferent)
+
+	channel := anoncreds.ProverFetchCredentialsForProofReq(sh, upItemReferent, count)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -196,8 +307,28 @@ func ProverFetchCredentialsForProofReq(sh int, itemReferent string, count int) (
 	return result.Results[0].(string), result.Error
 }
 
-func ProverCreateProof(wh int, proofRequestJson string, requestedCredentialsJson string, masterSecretId string, schemasForAttrsJson string, credentialDefsForAttrsJson string, revStatesJson string) (proofJson string, err error) {
-	channel := anoncreds.ProverCreateProof(wh, proofRequestJson, requestedCredentialsJson, masterSecretId, schemasForAttrsJson, credentialDefsForAttrsJson, revStatesJson)
+func ProverCreateProof(wh int, proofRequestJson, requestedCredentialsJson, masterSecretId, schemasForAttrsJson, credentialDefsForAttrsJson, revStatesJson string) (proofJson string, err error) {
+
+	upProofRequest := unsafe.Pointer(C.CString(proofRequestJson))
+	defer C.free(upProofRequest)
+	upRequestedCredentials := unsafe.Pointer(C.CString(requestedCredentialsJson))
+	defer C.free(upRequestedCredentials)
+	upMasterSecretId := unsafe.Pointer(C.CString(masterSecretId))
+	defer C.free(upMasterSecretId)
+	upSchemasForAttrs := unsafe.Pointer(C.CString(schemasForAttrsJson))
+	defer C.free(upSchemasForAttrs)
+	upCredentialDefsForAttrs := unsafe.Pointer(C.CString(credentialDefsForAttrsJson))
+	defer C.free(upCredentialDefsForAttrs)
+
+	// Library needs this even if empty ... so is not optional
+	if len(revStatesJson) == 0 {
+		revStatesJson = "{}"
+	}
+
+	upRevStates := unsafe.Pointer(C.CString(revStatesJson))
+	defer C.free(upRevStates)
+
+	channel := anoncreds.ProverCreateProof(wh, upProofRequest, upRequestedCredentials, upMasterSecretId, upSchemasForAttrs, upCredentialDefsForAttrs, upRevStates)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -205,8 +336,31 @@ func ProverCreateProof(wh int, proofRequestJson string, requestedCredentialsJson
 	return result.Results[0].(string), result.Error
 }
 
-func VerifierVerifyProof(proofRequestJson string, proofJson string, schemasJson string, credDefsJson string, revRegDefsJson string, revRegsJson string) (valid bool, err error) {
-	channel := anoncreds.VerifierVerifyProof(proofRequestJson, proofJson, schemasJson, credDefsJson, revRegDefsJson, revRegsJson)
+func VerifierVerifyProof(proofRequestJson, proofJson, schemasJson, credDefsJson, revRegDefsJson, revRegsJson string) (valid bool, err error) {
+
+	upProofRequest := unsafe.Pointer(C.CString(proofRequestJson))
+	defer C.free(upProofRequest)
+	upProof := unsafe.Pointer(C.CString(proofJson))
+	defer C.free(upProof)
+	upSchemas := unsafe.Pointer(C.CString(schemasJson))
+	defer C.free(upSchemas)
+	upCredDefs := unsafe.Pointer(C.CString(credDefsJson))
+	defer C.free(upCredDefs)
+
+	// Library needs this even if empty ... so is not optional
+	if len(revRegDefsJson) == 0 {
+		revRegDefsJson = "{}"
+	}
+	upRevRegDefs := unsafe.Pointer(C.CString(revRegDefsJson))
+	defer C.free(upRevRegDefs)
+
+	if len(revRegsJson) == 0 {
+		revRegsJson = "{}"
+	}
+	upRevRegs := unsafe.Pointer(C.CString(revRegsJson))
+	defer C.free(upRevRegs)
+
+	channel := anoncreds.VerifierVerifyProof(upProofRequest, upProof, upSchemas, upCredDefs, upRevRegDefs, upRevRegs)
 	result := <-channel
 	if result.Error != nil {
 		return false, result.Error
@@ -222,7 +376,11 @@ func VerifierVerifyProof(proofRequestJson string, proofJson string, schemasJson 
 }
 
 func ProverGetCredential(wh int, credentialId string) (credentialJson string, err error) {
-	channel := anoncreds.ProverGetCredential(wh, credentialId)
+
+	upCredentialId := unsafe.Pointer(C.CString(credentialId))
+	defer C.free(upCredentialId)
+
+	channel := anoncreds.ProverGetCredential(wh, upCredentialId)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -232,7 +390,11 @@ func ProverGetCredential(wh int, credentialId string) (credentialJson string, er
 }
 
 func ProverGetCredentialsForProofRequest(walletHandle int, proofReqJson string) (credentialJson string, err error) {
-	channel := anoncreds.ProverGetCredentialsForProofReq(walletHandle, proofReqJson)
+
+	upProofReq := unsafe.Pointer(C.CString(proofReqJson))
+	defer C.free(upProofReq)
+
+	channel := anoncreds.ProverGetCredentialsForProofReq(walletHandle, upProofReq)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -241,7 +403,11 @@ func ProverGetCredentialsForProofRequest(walletHandle int, proofReqJson string) 
 }
 
 func ProverSearchCredentials(walletHandle int, queryJson string) (searchHandle int, totalCount int, err error) {
-	channel := anoncreds.ProverSearchCredentials(walletHandle, queryJson)
+
+	upQuery := unsafe.Pointer(C.CString(queryJson))
+	defer C.free(upQuery)
+
+	channel := anoncreds.ProverSearchCredentials(walletHandle, upQuery)
 	result := <-channel
 	if result.Error != nil {
 		return 0, 0, result.Error
@@ -259,7 +425,10 @@ func ProverFetchCredentials(searchHandle int, totalCount int) (credentialsJson s
 }
 
 func ToUnqualified(entity string) (res string, err error) {
-	channel := anoncreds.ToUnqualified(entity)
+
+	upEntity := unsafe.Pointer(C.CString(entity))
+	defer C.free(upEntity)
+	channel := anoncreds.ToUnqualified(upEntity)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error

@@ -60,9 +60,8 @@ extern void qualifyDidCB(indy_handle_t, indy_error_t, char*);
 */
 import "C"
 import (
-	"encoding/json"
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 	"unsafe"
 )
 
@@ -82,27 +81,9 @@ func createAndStoreMyDidCB(commandHandle C.indy_handle_t, indyError C.indy_error
 }
 
 // CreateAndStoreMyDid creates a did and returns it with verkey. Nothing is written to the blockchain...
-func CreateAndStoreMyDid(walletHandle int, seed string) chan indyUtils.IndyResult {
+func CreateAndStoreMyDid(walletHandle int, did unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	type didJson struct {
-		Did        string `json:"did,omitempty"`
-		Seed       string `json:"seed,omitempty"`
-		Crypto     string `json:"crypto_type,omitempty"`
-		Cid        string `json:"cid,omitempty"`
-		MethodName string `json:"method_name,omitempty"`
-	}
-
-	didjs := didJson{
-		Seed: seed,
-	}
-
-	didCfg, err := json.Marshal(didjs)
-	if err != nil {
-		go func() { indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err}) }()
-		return future
-	}
 
 	/*
 		Create keys (signing and encryption keys) for a new
@@ -132,7 +113,7 @@ func CreateAndStoreMyDid(walletHandle int, seed string) chan indyUtils.IndyResul
 	// Call indy_create_and_store_my_did
 	res := C.indy_create_and_store_my_did(commandHandle,
 		(C.indy_handle_t)(walletHandle),
-		C.CString(string(didCfg)),
+		(*C.char)(did),
 		(C.cb_createAndStoreMyDid)(unsafe.Pointer(C.createAndStoreMyDidCB)))
 
 	if res != 0 {
@@ -155,7 +136,7 @@ func replaceKeyStartCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, 
 }
 
 // ReplaceKeyStart generates temporary keys for an existing DID
-func ReplaceKeyStart(walletHandle int, did string, identityJson string) chan indyUtils.IndyResult {
+func ReplaceKeyStart(walletHandle int, did, identityJson unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -179,8 +160,8 @@ func ReplaceKeyStart(walletHandle int, did string, identityJson string) chan ind
 	// Call indy_replace_keys_start
 	res := C.indy_replace_keys_start(commandHandle,
 		(C.indy_handle_t)(walletHandle),
-		C.CString(did),
-		C.CString(identityJson),
+		(*C.char)(did),
+		(*C.char)(identityJson),
 		(C.cb_replaceKeyStart)(unsafe.Pointer(C.replaceKeyStartCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -202,7 +183,7 @@ func replaceKeyApplyCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) 
 }
 
 // ReplaceKeyApply applies temporary keys as main for existing DID
-func ReplaceKeyApply(walletHandle int, did string) chan indyUtils.IndyResult {
+func ReplaceKeyApply(walletHandle int, did unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -219,7 +200,7 @@ func ReplaceKeyApply(walletHandle int, did string) chan indyUtils.IndyResult {
 	// Call indy_replace_keys_apply
 	res := C.indy_replace_keys_apply(commandHandle,
 		(C.indy_handle_t)(walletHandle),
-		C.CString(did),
+		(*C.char)(did),
 		(C.cb_replaceKeyApply)(unsafe.Pointer(C.replaceKeyApplyCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -241,7 +222,7 @@ func storeTheirDidCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) {
 }
 
 // StoreTheirDid saves DID for a pairwise connection in a secured wallet to verify transaction.
-func StoreTheirDid(walletHandle int, identityJson string) chan indyUtils.IndyResult {
+func StoreTheirDid(walletHandle int, identityJson unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -263,7 +244,7 @@ func StoreTheirDid(walletHandle int, identityJson string) chan indyUtils.IndyRes
 	// Call indy_store_their_did
 	res := C.indy_store_their_did(commandHandle,
 		(C.indy_handle_t)(walletHandle),
-		C.CString(identityJson),
+		(*C.char)(identityJson),
 		(C.cb_storeTheirDid)(unsafe.Pointer(C.storeTheirDidCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -285,7 +266,7 @@ func keyForDidCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, verKey
 }
 
 // KeyForDid returns ver key for the given DID
-func KeyForDid(poolHandle int, walletHandle int, did string) chan indyUtils.IndyResult {
+func KeyForDid(poolHandle int, walletHandle int, did unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -313,7 +294,7 @@ func KeyForDid(poolHandle int, walletHandle int, did string) chan indyUtils.Indy
 	res := C.indy_key_for_did(commandHandle,
 		C.indy_handle_t(poolHandle),
 		C.indy_handle_t(walletHandle),
-		C.CString(did),
+		(*C.char)(did),
 		(C.cb_keyForDid)(unsafe.Pointer(C.keyForDidCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -334,13 +315,13 @@ func keyForLocalDidCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, v
 }
 
 // KeyForLocalDid gets the key for the local DID.
-func KeyForLocalDid(walletHandle int, did string) chan indyUtils.IndyResult {
+func KeyForLocalDid(walletHandle int, did unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
 	res := C.indy_key_for_local_did(commandHandle,
 		(C.indy_handle_t)(walletHandle),
-		C.CString(did),
+		(*C.char)(did),
 		(C.cb_keyForLocalDid)(unsafe.Pointer(C.keyForLocalDidCB)))
 
 	if res != 0 {
@@ -363,7 +344,7 @@ func setEndPointForDidCB(commandHandle C.indy_handle_t, indyError C.indy_error_t
 }
 
 // SetEndPointForDid set/replaces endpoint information for the given DID
-func SetEndPointForDid(walletHandle int, did string, address string, transportKey string) chan indyUtils.IndyResult {
+func SetEndPointForDid(walletHandle int, did, address, transportKey unsafe.Pointer) chan indyUtils.IndyResult {
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := C.indy_handle_t(handle)
@@ -382,9 +363,9 @@ func SetEndPointForDid(walletHandle int, did string, address string, transportKe
 	// Call indy_set_endpoint_for_did
 	res := C.indy_set_endpoint_for_did(commandHandle,
 		(C.indy_handle_t)(walletHandle),
-		C.CString(did),
-		C.CString(address),
-		C.CString(transportKey),
+		(*C.char)(did),
+		(*C.char)(address),
+		(*C.char)(transportKey),
 		(C.cb_setEndPointForDid)(unsafe.Pointer(C.setEndPointForDidCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -407,7 +388,7 @@ func getEndPointForDidCB(commandHandle C.indy_handle_t, indyError C.indy_error_t
 }
 
 // GetEndPointForDid returns endpoint information for the given DID
-func GetEndPointForDid(walletHandle int, poolHandle int, did string) chan indyUtils.IndyResult {
+func GetEndPointForDid(walletHandle int, poolHandle int, did unsafe.Pointer) chan indyUtils.IndyResult {
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := C.indy_handle_t(handle)
@@ -425,7 +406,7 @@ func GetEndPointForDid(walletHandle int, poolHandle int, did string) chan indyUt
 	res := C.indy_get_endpoint_for_did(commandHandle,
 		(C.indy_handle_t)(walletHandle),
 		(C.indy_handle_t)(poolHandle),
-		C.CString(did),
+		(*C.char)(did),
 		(C.cb_getEndPointForDid)(unsafe.Pointer(C.getEndPointForDidCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -447,7 +428,7 @@ func setDidMetadataCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) {
 }
 
 // SetDidMetadata saves/replaces meta information for the given DID
-func SetDidMetadata(walletHandle int, did string, metadata string) chan indyUtils.IndyResult {
+func SetDidMetadata(walletHandle int, did, metadata unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -463,8 +444,8 @@ func SetDidMetadata(walletHandle int, did string, metadata string) chan indyUtil
 	// Call indy_set_did_metadata
 	res := C.indy_set_did_metadata(commandHandle,
 		C.indy_handle_t(walletHandle),
-		C.CString(did),
-		C.CString(metadata),
+		(*C.char)(did),
+		(*C.char)(metadata),
 		(C.cb_setDidMetadata)(unsafe.Pointer(C.setDidMetadataCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -486,7 +467,7 @@ func getDidMetadataCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, m
 }
 
 // GetDidMetadata retrieves meta information for the given DID
-func GetDidMetadata(walletHandle int, did string) chan indyUtils.IndyResult {
+func GetDidMetadata(walletHandle int, did unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := C.indy_handle_t(handle)
 
@@ -501,7 +482,7 @@ func GetDidMetadata(walletHandle int, did string) chan indyUtils.IndyResult {
 	// Call indy_get_did_metadata
 	res := C.indy_get_did_metadata(commandHandle,
 		(C.indy_handle_t)(walletHandle),
-		C.CString(did),
+		(*C.char)(did),
 		(C.cb_getDidMetadata)(unsafe.Pointer(C.getDidMetadataCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -524,7 +505,7 @@ func getDidWithMetadataCB(commandHandle C.indy_handle_t, indyError C.indy_error_
 }
 
 // GetDidWithMetadata retrieves DID, metadata and verKey stored in the wallet.
-func GetDidWithMetadata(walletHandle int, did string) chan indyUtils.IndyResult {
+func GetDidWithMetadata(walletHandle int, did unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := C.indy_handle_t(handle)
 	/*
@@ -538,7 +519,7 @@ func GetDidWithMetadata(walletHandle int, did string) chan indyUtils.IndyResult 
 	// Call indy_get_did_with_metadata
 	res := C.indy_get_my_did_with_meta(commandHandle,
 		(C.indy_handle_t)(walletHandle),
-		C.CString(did),
+		(*C.char)(did),
 		(C.cb_getDidWithMetadata)(unsafe.Pointer(C.getDidWithMetadataCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -597,7 +578,7 @@ func abbreviateVerKeyCB(commandHandle C.indy_handle_t, indyError C.indy_error_t,
 }
 
 // AbbreviateVerKey retrieves abbreviated key if exists, otherwise returns full verkey.
-func AbbreviateVerKey(did string, verKey string) chan indyUtils.IndyResult {
+func AbbreviateVerKey(did, verKey unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := C.indy_handle_t(handle)
 
@@ -611,8 +592,8 @@ func AbbreviateVerKey(did string, verKey string) chan indyUtils.IndyResult {
 
 	// Call C.indy_abbreviate_verkey
 	res := C.indy_abbreviate_verkey(commandHandle,
-		C.CString(did),
-		C.CString(verKey),
+		(*C.char)(did),
+		(*C.char)(verKey),
 		(C.cb_abbreviateVerKey)(unsafe.Pointer(C.abbreviateVerKeyCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -635,7 +616,7 @@ func qualifyDidCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, quali
 }
 
 // QualifyDid updates DID related entities stored in the wallet.
-func QualifyDid(walletHandle int, did string, method string) chan indyUtils.IndyResult {
+func QualifyDid(walletHandle int, did, method unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := C.indy_handle_t(handle)
 
@@ -654,8 +635,8 @@ func QualifyDid(walletHandle int, did string, method string) chan indyUtils.Indy
 	// Call indy_qualify_did
 	res := C.indy_qualify_did(commandHandle,
 		C.indy_handle_t(walletHandle),
-		C.CString(did),
-		C.CString(method),
+		(*C.char)(did),
+		(*C.char)(method),
 		(C.cb_qualifyDid)(unsafe.Pointer(C.qualifyDidCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))

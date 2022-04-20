@@ -12,11 +12,11 @@
 package indySDK
 
 import (
-	"fmt"
-	"github.com/Jeffail/gabs/v2"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"github.com/joyride9999/IndySdkGoBindings/pool"
 	"github.com/joyride9999/IndySdkGoBindings/wallet"
+	"fmt"
+	"github.com/Jeffail/gabs/v2"
 )
 
 const tag = "tag0"

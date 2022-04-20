@@ -12,10 +12,10 @@
 package indySDK
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/joyride9999/IndySdkGoBindings/crypto"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"encoding/json"
+	"fmt"
 	"testing"
 )
 
@@ -48,7 +48,7 @@ func TestAnonCrypt(t *testing.T) {
 		wantErr bool
 	}{
 		{"anon-crypt-works", args{Message: message, VerKey: verKey}, false},
-		{"anon-crpy-empty-message", args{Message: []byte(""), VerKey: verKey}, true},
+		{"anon-crypt-empty-message", args{Message: []byte(""), VerKey: verKey}, true},
 		{"anon-crypt-invalid-ver-key", args{Message: message, VerKey: "invalid-ver-key"}, true},
 	}
 
@@ -107,7 +107,7 @@ func TestAnonDecrypt(t *testing.T) {
 		wantErr bool
 	}{
 		{"anon-decrypt-works", args{Message: encrypted, VerKey: verKey}, false},
-		{"anon-decrpy-invalid-message", args{Message: []byte("invalid-message"), VerKey: verKey}, true},
+		{"anon-decrypt-invalid-message", args{Message: []byte("invalid-message"), VerKey: verKey}, true},
 		{"anon-decrypt-invalid-ver-key", args{Message: encrypted, VerKey: "invalid-ver-key"}, true},
 	}
 

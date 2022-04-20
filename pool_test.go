@@ -13,9 +13,9 @@
 package indySDK
 
 import (
+	"github.com/joyride9999/IndySdkGoBindings/pool"
 	"fmt"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
-	"github.com/joyride9999/IndySdkGoBindings/pool"
 	"testing"
 )
 

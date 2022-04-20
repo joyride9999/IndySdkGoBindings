@@ -48,8 +48,8 @@ extern void closeWalletSearchCB(indy_handle_t, indy_error_t);
 */
 import "C"
 import (
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 	"unsafe"
 )
 
@@ -68,18 +68,10 @@ func getWalletRecordCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, 
 }
 
 // IndyGetWalletRecord Create a new non-secret record in the wallet.
-func IndyGetWalletRecord(wh int, recordType string, recordId string, options string) chan indyUtils.IndyResult {
+func IndyGetWalletRecord(wh int, recordType, recordId, options unsafe.Pointer) chan indyUtils.IndyResult {
 
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var optionalOptions string
-	if len(options) > 0 {
-		optionalOptions = options
-	} else {
-		optionalOptions = "{}"
-	}
-
 	/*
 		Get an wallet record by id
 
@@ -103,9 +95,9 @@ func IndyGetWalletRecord(wh int, recordType string, recordId string, options str
 
 	res := C.indy_get_wallet_record(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(recordType),
-		C.CString(recordId),
-		C.CString(optionalOptions),
+		(*C.char)(recordType),
+		(*C.char)(recordId),
+		(*C.char)(options),
 		(C.cb_getWalletRecord)(unsafe.Pointer(C.getWalletRecordCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -127,17 +119,10 @@ func addWalletRecordCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) 
 }
 
 // IndyAddWalletRecord Create a new non-secret record in the wallet.
-func IndyAddWalletRecord(wh int, recordType string, recordId string, recordValue string, tagsJson string) chan indyUtils.IndyResult {
+func IndyAddWalletRecord(wh int, recordType, recordId, recordValue, tagsJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var optionalTagsJson *C.char
-	if len(tagsJson) > 0 {
-		optionalTagsJson = C.CString(tagsJson)
-	} else {
-		optionalTagsJson = nil
-	}
 	/*
 	   :param wallet_handle: wallet handler (created by open_wallet).
 	   :param type_: allows to separate different record types collections
@@ -156,10 +141,10 @@ func IndyAddWalletRecord(wh int, recordType string, recordId string, recordValue
 
 	res := C.indy_add_wallet_record(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(recordType),
-		C.CString(recordId),
-		C.CString(recordValue),
-		optionalTagsJson,
+		(*C.char)(recordType),
+		(*C.char)(recordId),
+		(*C.char)(recordValue),
+		(*C.char)(tagsJson),
 		(C.cb_addWalletRecord)(unsafe.Pointer(C.addWalletRecordCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -181,41 +166,33 @@ func addWalletRecordTagsCB(commandHandle C.indy_handle_t, indyError C.indy_error
 }
 
 // IndyAddWalletRecordTags Add new tags to the wallet record.
-func IndyAddWalletRecordTags(wh int, recordType string, recordId string, tagsJson string) chan indyUtils.IndyResult {
+func IndyAddWalletRecordTags(wh int, recordType, recordId, tagsJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var optionalTagsJson *C.char
-	if len(tagsJson) > 0 {
-		optionalTagsJson = C.CString(tagsJson)
-	} else {
-		optionalTagsJson = nil
-	}
-
 	/*
-		Add new tags to the wallet record
+			Add new tags to the wallet record
 
-	    :param wallet_handle: wallet handler (created by open_wallet).
-	    :param type_: allows to separate different record types collections
-	    :param id_: the id of record
-	    :param tags_json: the record tags used for search and storing meta information as json:
-	       {
-	         "tagName1": <str>, // string tag (will be stored encrypted)
-	         "tagName2": <str>, // string tag (will be stored encrypted)
-	         "~tagName3": <str>, // string tag (will be stored un-encrypted)
-	         "~tagName4": <str>, // string tag (will be stored un-encrypted)
-	       }
-	    :return: None
-	 */
+		    :param wallet_handle: wallet handler (created by open_wallet).
+		    :param type_: allows to separate different record types collections
+		    :param id_: the id of record
+		    :param tags_json: the record tags used for search and storing meta information as json:
+		       {
+		         "tagName1": <str>, // string tag (will be stored encrypted)
+		         "tagName2": <str>, // string tag (will be stored encrypted)
+		         "~tagName3": <str>, // string tag (will be stored un-encrypted)
+		         "~tagName4": <str>, // string tag (will be stored un-encrypted)
+		       }
+		    :return: None
+	*/
 
 	// Call to indy function.
 	res := C.indy_add_wallet_record_tags(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(recordType),
-		C.CString(recordId),
-		optionalTagsJson,
+		(*C.char)(recordType),
+		(*C.char)(recordId),
+		(*C.char)(tagsJson),
 		(C.cb_addWalletRecordTags)(unsafe.Pointer(C.addWalletRecordTagsCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -237,26 +214,26 @@ func deleteWalletRecordCB(commandHandle C.indy_handle_t, indyError C.indy_error_
 }
 
 // IndyDeleteWalletRecord Delete an existing wallet record in the wallet.
-func IndyDeleteWalletRecord(wh int, recordType string, recordId string) chan indyUtils.IndyResult {
+func IndyDeleteWalletRecord(wh int, recordType, recordId unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
-		 Delete an existing wallet record in the wallet
+			 Delete an existing wallet record in the wallet
 
-	    :param wallet_handle: wallet handler (created by open_wallet).
-	    :param type_: allows to separate different record types collections
-	    :param id_: the id of record
-	    :return: None
-	 */
+		    :param wallet_handle: wallet handler (created by open_wallet).
+		    :param type_: allows to separate different record types collections
+		    :param id_: the id of record
+		    :return: None
+	*/
 
 	// Call to indy function.
 	res := C.indy_delete_wallet_record(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(recordType),
-		C.CString(recordId),
+		(*C.char)(recordType),
+		(*C.char)(recordId),
 		(C.cb_deleteWalletRecord)(unsafe.Pointer(C.deleteWalletRecordCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -278,28 +255,28 @@ func deleteWalletRecordTagsCB(commandHandle C.indy_handle_t, indyError C.indy_er
 }
 
 // IndyDeleteWalletRecordTags Delete tags from the wallet record.
-func IndyDeleteWalletRecordTags(wh int, recordType string, recordId string, tagNames string) chan indyUtils.IndyResult {
+func IndyDeleteWalletRecordTags(wh int, recordType, recordId, tagNames unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
-		Delete tags from the wallet record
+			Delete tags from the wallet record
 
-		:param wallet_handle: wallet handler (created by open_wallet).
-	    :param type_: allows to separate different record types collections
-	    :param id_: the id of record
-	    :param tag_names_json: the list of tag names to remove from the record as json array: ["tagName1", "tagName2", ...]
-	    :return: None
-	 */
+			:param wallet_handle: wallet handler (created by open_wallet).
+		    :param type_: allows to separate different record types collections
+		    :param id_: the id of record
+		    :param tag_names_json: the list of tag names to remove from the record as json array: ["tagName1", "tagName2", ...]
+		    :return: None
+	*/
 
 	// Call to indy function.
 	res := C.indy_delete_wallet_record_tags(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(recordType),
-		C.CString(recordId),
-		C.CString(tagNames),
+		(*C.char)(recordType),
+		(*C.char)(recordId),
+		(*C.char)(tagNames),
 		(C.cb_deleteWalletRecordTags)(unsafe.Pointer(C.deleteWalletRecordTagsCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -321,28 +298,28 @@ func updateWalletRecordValueCB(commandHandle C.indy_handle_t, indyError C.indy_e
 }
 
 // IndyUpdateWalletRecordValue Update a non-secret wallet record value.
-func IndyUpdateWalletRecordValue(wh int, recordType string, recordId string, recordValue string) chan indyUtils.IndyResult {
+func IndyUpdateWalletRecordValue(wh int, recordType, recordId, recordValue unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
-		 Update a non-secret wallet record value
+			 Update a non-secret wallet record value
 
-	    :param wallet_handle: wallet handler (created by open_wallet).
-	    :param type_: allows to separate different record types collections
-	    :param id_: the id of record
-	    :param value: the value of record
-	    :return: None
-	 */
+		    :param wallet_handle: wallet handler (created by open_wallet).
+		    :param type_: allows to separate different record types collections
+		    :param id_: the id of record
+		    :param value: the value of record
+		    :return: None
+	*/
 
 	// Call to indy function
 	res := C.indy_update_wallet_record_value(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(recordType),
-		C.CString(recordId),
-		C.CString(recordValue),
+		(*C.char)(recordType),
+		(*C.char)(recordId),
+		(*C.char)(recordValue),
 		(C.cb_updateWalletRecordValue)(unsafe.Pointer(C.updateWalletRecordValueCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -364,7 +341,7 @@ func updateWalletRecordTagsCB(commandHandle C.indy_handle_t, indyError C.indy_er
 }
 
 // IndyUpdateWalletRecordTags Update a non-secret wallet record value.
-func IndyUpdateWalletRecordTags(wh int, recordType string, recordId string, recordTags string) chan indyUtils.IndyResult {
+func IndyUpdateWalletRecordTags(wh int, recordType, recordId, recordTags unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
@@ -384,14 +361,14 @@ func IndyUpdateWalletRecordTags(wh int, recordType string, recordId string, reco
 	        "~tagName4": <str>, // string tag (will be stored un-encrypted)
 	      }
 	   :return: None
-	 */
+	*/
 
 	// Call to indy function
 	res := C.indy_update_wallet_record_tags(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(recordType),
-		C.CString(recordId),
-		C.CString(recordTags),
+		(*C.char)(recordType),
+		(*C.char)(recordId),
+		(*C.char)(recordTags),
 		(C.cb_updateWalletRecordTags)(unsafe.Pointer(C.updateWalletRecordTagsCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -413,57 +390,43 @@ func openWalletSearchCB(commandHandle C.indy_handle_t, indyError C.indy_error_t,
 }
 
 // IndyOpenWalletSearch Search for wallet records.
-func IndyOpenWalletSearch(wh int, recordType string, query string, options string) chan indyUtils.IndyResult {
+func IndyOpenWalletSearch(wh int, recordType, query, options unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
-	var indyOptions *C.char
-	if len(options) > 0 {
-		indyOptions = C.CString(options)
-	} else {
-		indyOptions = C.CString("{}")
-	}
-
-	var indyQuery *C.char
-	if len(query) > 0 {
-		indyQuery = C.CString(query)
-	} else {
-		indyQuery = C.CString("{}")
-	}
-
 	/*
-	    Search for wallet records
+	   Search for wallet records
 
-	    :param wallet_handle: wallet handler (created by open_wallet).
-	    :param type_: allows to separate different record types collections
-	    :param query_json: MongoDB style query to wallet record tags:
-	      {
-	        "tagName": "tagValue",
-	        $or: {
-	          "tagName2": { $regex: 'pattern' },
-	          "tagName3": { $gte: '123' },
-	        },
-	      }
-	    :param options_json: //TODO: FIXME: Think about replacing by bitmask
-	      {
-	        retrieveRecords: (optional, true by default) If false only "counts" will be calculated,
-	        retrieveTotalCount: (optional, false by default) Calculate total count,
-	        retrieveType: (optional, false by default) Retrieve record type,
-	        retrieveValue: (optional, true by default) Retrieve record value,
-	        retrieveTags: (optional, false by default) Retrieve record tags,
-	      }
-	    :return: search_handle: Wallet search handle that can be used later
-	             to fetch records by small batches (with fetch_wallet_search_next_records)
-	 */
+	   :param wallet_handle: wallet handler (created by open_wallet).
+	   :param type_: allows to separate different record types collections
+	   :param query_json: MongoDB style query to wallet record tags:
+	     {
+	       "tagName": "tagValue",
+	       $or: {
+	         "tagName2": { $regex: 'pattern' },
+	         "tagName3": { $gte: '123' },
+	       },
+	     }
+	   :param options_json: //TODO: FIXME: Think about replacing by bitmask
+	     {
+	       retrieveRecords: (optional, true by default) If false only "counts" will be calculated,
+	       retrieveTotalCount: (optional, false by default) Calculate total count,
+	       retrieveType: (optional, false by default) Retrieve record type,
+	       retrieveValue: (optional, true by default) Retrieve record value,
+	       retrieveTags: (optional, false by default) Retrieve record tags,
+	     }
+	   :return: search_handle: Wallet search handle that can be used later
+	            to fetch records by small batches (with fetch_wallet_search_next_records)
+	*/
 
 	// Call to indy function
 	res := C.indy_open_wallet_search(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(recordType),
-		indyQuery,
-		indyOptions,
+		(*C.char)(recordType),
+		(*C.char)(query),
+		(*C.char)(options),
 		(C.cb_openWalletSearch)(unsafe.Pointer(C.openWalletSearchCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -507,7 +470,7 @@ func IndyFetchWalletSearchNextRecords(wh int, sh int, count int32) chan indyUtil
 				  tags: <tags json>, // present only if retrieveTags set to true
 			  }],
 			}
-	 */
+	*/
 
 	// Call to indy function
 	res := C.indy_fetch_wallet_search_next_records(commandHandle,
@@ -542,11 +505,11 @@ func IndyCloseWalletSearch(sh int) chan indyUtils.IndyResult {
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
-		Close wallet search (make search handle invalid)
+			Close wallet search (make search handle invalid)
 
-		:param wallet_search_handle: wallet wallet handle (created by open_wallet_search)
-	    :return: None
-	 */
+			:param wallet_search_handle: wallet wallet handle (created by open_wallet_search)
+		    :return: None
+	*/
 
 	// Call to indy function
 	res := C.indy_close_wallet_search(commandHandle,

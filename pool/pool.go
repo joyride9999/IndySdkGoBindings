@@ -32,9 +32,8 @@ extern void closePoolLedgerCB(indy_handle_t, indy_error_t);
 import "C"
 
 import (
-	"encoding/json"
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 	"unsafe"
 )
 
@@ -107,22 +106,16 @@ func createPoolLedgerConfigCB(commandHandle C.indy_handle_t, indyError C.indy_er
 }
 
 // IndyCreatePoolLedgerConfig creates a pool configuration out of a txn file
-func IndyCreatePoolLedgerConfig(pool Pool) chan indyUtils.IndyResult {
+func IndyCreatePoolLedgerConfig(poolName, PoolCfg unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-	poolConfig, err := json.Marshal(pool)
-	if err != nil {
-		go func() { indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err}) }()
-		return future
-	}
-	poolCfg := string(poolConfig)
 
 	// Call indy_create_pool_ledger_config
 	res := C.indy_create_pool_ledger_config(commandHandle,
-		C.CString(pool.Name),
-		C.CString(poolCfg),
+		(*C.char)(poolName),
+		(*C.char)(PoolCfg),
 		(C.cb_setProtocolVersion)(unsafe.Pointer(C.createPoolLedgerConfigCB)))
 
 	if res != 0 {
@@ -145,25 +138,11 @@ func openPoolLedgerCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, r
 }
 
 // IndyOpenPoolLedger opens a pool
-func IndyOpenPoolLedger(pool Pool) chan indyUtils.IndyResult {
+func IndyOpenPoolLedger(poolName, poolCfg unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	type cfg struct {
-		Timeout int `json:"timeout"`
-	}
-
-	t := cfg{
-		Timeout: 10,
-	}
-
-	jsonConfig, err := json.Marshal(t)
-	if err != nil {
-		go func() { indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err}) }()
-		return future
-	}
 
 	/*
 	   Opens pool ledger and performs connecting to pool nodes.
@@ -192,8 +171,8 @@ func IndyOpenPoolLedger(pool Pool) chan indyUtils.IndyResult {
 	*/
 	// Call indy_open_pool_ledger
 	res := C.indy_open_pool_ledger(commandHandle,
-		C.CString(pool.Name),
-		C.CString(string(jsonConfig)),
+		(*C.char)(poolName),
+		(*C.char)(poolCfg),
 		(C.cb_setProtocolVersion)(unsafe.Pointer(C.openPoolLedgerCB)))
 
 	if res != 0 {

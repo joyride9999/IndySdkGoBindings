@@ -1,9 +1,10 @@
 package indySDK
 
 import (
-	"fmt"
 	"github.com/joyride9999/IndySdkGoBindings/wallet"
+	"fmt"
 	"testing"
+	"unsafe"
 )
 
 type StorageRecord struct {
@@ -146,28 +147,33 @@ func (e *InMemoryStorage) GetRecordHandle(storageHandle int, recordType string, 
 	}
 }
 
-func (e *InMemoryStorage) GetRecordId(storageHandle int, recordHandle int) (string, int, error) {
+func (e *InMemoryStorage) GetRecordId(storageHandle int, recordHandle int) (unsafe.Pointer, int, error) {
 	recordId := e.RecordHandles[recordHandle].Id
 
-	return recordId, 0, nil
+	//TODO : fixme
+	return unsafe.Pointer(&recordId), 0, nil
 }
 
-func (e *InMemoryStorage) GetRecordType(storageHandle int, recordHandle int) (string, int, error) {
+func (e *InMemoryStorage) GetRecordType(storageHandle int, recordHandle int) (unsafe.Pointer, int, error) {
 	recordType := e.RecordHandles[recordHandle].Type
-
-	return recordType, 0, nil
+	//todo : fixme
+	return unsafe.Pointer(&recordType), 0, nil
 }
 
-func (e *InMemoryStorage) GetRecordValue(storageHandle int, recordHandle int) ([]byte, int, error) {
+func (e *InMemoryStorage) GetRecordValue(storageHandle int, recordHandle int) (wallet.RecordValue, int, error) {
 	storageValue := e.RecordHandles[recordHandle].Value
-
-	return storageValue, 0, nil
+	//todo : fixme
+	return wallet.RecordValue{
+		Len:   len(storageValue),
+		Value: unsafe.Pointer(&storageValue),
+	}, 0, nil
 }
 
-func (e *InMemoryStorage) GetRecordTags(storageHandle int, recordHandle int) (string, int, error) {
+func (e *InMemoryStorage) GetRecordTags(storageHandle int, recordHandle int) (unsafe.Pointer, int, error) {
 	recordTags := e.RecordHandles[recordHandle].Tags
 
-	return recordTags, 0, nil
+	//todo: fixme
+	return unsafe.Pointer(&recordTags), 0, nil
 }
 
 func (e *InMemoryStorage) FreeRecord(storageHandle int, recordHandle int) error {
@@ -176,13 +182,13 @@ func (e *InMemoryStorage) FreeRecord(storageHandle int, recordHandle int) error 
 	return nil
 }
 
-func (e *InMemoryStorage) GetStorageMetadata(storageHandle int) (string, int, int, error) {
+func (e *InMemoryStorage) GetStorageMetadata(storageHandle int) (unsafe.Pointer, int, int, error) {
 	metadata := e.StoredMetadata[e.StorageHandles[storageHandle]]
 
 	nextMetadataHandle := len(e.MetadataHandles) + 1
 	e.MetadataHandles[nextMetadataHandle] = metadata
-
-	return metadata, nextMetadataHandle, 0, nil
+	//todo : fixme
+	return unsafe.Pointer(&metadata), nextMetadataHandle, 0, nil
 }
 
 func (e *InMemoryStorage) SetStorageMetadata(storageHandle int, metadata string) (int, error) {

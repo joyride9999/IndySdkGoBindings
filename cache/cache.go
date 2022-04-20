@@ -30,8 +30,8 @@ extern void purgeSchemaCacheCB(indy_handle_t, indy_error_t);
 import "C"
 
 import (
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 	"unsafe"
 )
 
@@ -49,7 +49,7 @@ func getSchemaCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, schema
 	}
 }
 
-func GetSchema(poolHandle int, walletHandle int, submitterDid string, schemaID string, optionsJson string) chan indyUtils.IndyResult {
+func GetSchema(poolHandle int, walletHandle int, submitterDid, schemaID, optionsJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -88,9 +88,9 @@ func GetSchema(poolHandle int, walletHandle int, submitterDid string, schemaID s
 	res := C.indy_get_schema(commandHandle,
 		C.indy_handle_t(poolHandle),
 		C.indy_handle_t(walletHandle),
-		C.CString(submitterDid),
-		C.CString(schemaID),
-		C.CString(optionsJson),
+		(*C.char)(submitterDid),
+		(*C.char)(schemaID),
+		(*C.char)(optionsJson),
 		(C.cb_getSchema)(unsafe.Pointer(C.getSchemaCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -115,7 +115,7 @@ func getCredDefCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, credD
 	}
 }
 
-func GetCredDef(poolHandle int, walletHandle int, submitterDid string, credDefId string, optionsJson string) chan indyUtils.IndyResult {
+func GetCredDef(poolHandle int, walletHandle int, submitterDid, credDefId, optionsJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -159,9 +159,9 @@ func GetCredDef(poolHandle int, walletHandle int, submitterDid string, credDefId
 	res := C.indy_get_cred_def(commandHandle,
 		C.indy_handle_t(poolHandle),
 		C.indy_handle_t(walletHandle),
-		C.CString(submitterDid),
-		C.CString(credDefId),
-		C.CString(optionsJson),
+		(*C.char)(submitterDid),
+		(*C.char)(credDefId),
+		(*C.char)(optionsJson),
 		(C.cb_getCredDef)(unsafe.Pointer(C.getCredDefCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -183,7 +183,7 @@ func purgeCredDefCacheCB(commandHandle C.indy_handle_t, indyError C.indy_error_t
 }
 
 // PurgeCredDefCache purge credential definition cache
-func PurgeCredDefCache(wh int, options string) chan indyUtils.IndyResult {
+func PurgeCredDefCache(wh int, options unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -204,7 +204,7 @@ func PurgeCredDefCache(wh int, options string) chan indyUtils.IndyResult {
 	// Call indy_purge_cred_def_cache
 	res := C.indy_purge_cred_def_cache(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(options),
+		(*C.char)(options),
 		(C.cb_purgeCredDefCache)(unsafe.Pointer(C.purgeCredDefCacheCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -226,7 +226,7 @@ func purgeSchemaCacheCB(commandHandle C.indy_handle_t, indyError C.indy_error_t)
 }
 
 // PurgeSchemaCache purge credential definition cache
-func PurgeSchemaCache(wh int, options string) chan indyUtils.IndyResult {
+func PurgeSchemaCache(wh int, options unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -246,7 +246,7 @@ func PurgeSchemaCache(wh int, options string) chan indyUtils.IndyResult {
 	// Call indy_purge_cred_def_cache
 	res := C.indy_purge_schema_cache(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(options),
+		(*C.char)(options),
 		(C.cb_purgeSchemaCache)(unsafe.Pointer(C.purgeSchemaCacheCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))

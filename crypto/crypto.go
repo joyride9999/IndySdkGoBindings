@@ -42,9 +42,8 @@ extern void unpackMsgCB(indy_handle_t, indy_error_t, indy_u8_t*, indy_u32_t);
 import "C"
 
 import (
-	"encoding/json"
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 	"unsafe"
 )
 
@@ -59,36 +58,29 @@ func createKeyCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, vkey *
 }
 
 // CreateKey creates keys pair and stores in the wallet
-func CreateKey(wh int, key Key) chan indyUtils.IndyResult {
+func CreateKey(wh int, key unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
-	jsonKey, err := json.Marshal(key)
-	if err != nil {
-		go func() { indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err}) }()
-		return future
-	}
-	keyString := string(jsonKey)
-
 	/*
-		Creates keys pair and stores in the wallet.
+			Creates keys pair and stores in the wallet.
 
-		:param wallet_handle: Wallet handle (created by open_wallet).
-		:param key_json: Key information as json. Example:
-		{
-		    "seed": string, (optional) Seed that allows deterministic key creation (if not set random one will be created).
-		                               Can be UTF-8, base64 or hex string.
-		    "crypto_type": string, // Optional (if not set then ed25519 curve is used); Currently only 'ed25519' value is supported for this field.
-		}
+			:param wallet_handle: Wallet handle (created by open_wallet).
+			:param key_json: Key information as json. Example:
+			{
+			    "seed": string, (optional) Seed that allows deterministic key creation (if not set random one will be created).
+			                               Can be UTF-8, base64 or hex string.
+			    "crypto_type": string, // Optional (if not set then ed25519 curve is used); Currently only 'ed25519' value is supported for this field.
+			}
 
-	    :return: Error code
+		    :return: Error code
 
 	*/
 
 	// Call indy_create_key
 	res := C.indy_create_key(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(keyString),
+		(*C.char)(key),
 		(C.cb_createKey)(unsafe.Pointer(C.createKeyCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -110,7 +102,7 @@ func setKeyMetadataCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) {
 }
 
 // SetKeyMetadata saves/replaces the meta information for the giving key in the wallet
-func SetKeyMetadata(wh int, verkey string, metadata string) chan indyUtils.IndyResult {
+func SetKeyMetadata(wh int, verkey, metadata unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -127,8 +119,8 @@ func SetKeyMetadata(wh int, verkey string, metadata string) chan indyUtils.IndyR
 	// Call indy_set_key_metadata
 	res := C.indy_set_key_metadata(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(verkey),
-		C.CString(metadata),
+		(*C.char)(verkey),
+		(*C.char)(metadata),
 		(C.cb_setKeyMetadata)(unsafe.Pointer(C.setKeyMetadataCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -151,7 +143,7 @@ func getKeyMetadataCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, m
 }
 
 // GetKeyMetadata retrieves the meta information for the giving key in the wallet
-func GetKeyMetadata(wh int, verkey string) chan indyUtils.IndyResult {
+func GetKeyMetadata(wh int, verkey unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -167,7 +159,7 @@ func GetKeyMetadata(wh int, verkey string) chan indyUtils.IndyResult {
 	// Call indy_get_key_metadata
 	res := C.indy_get_key_metadata(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(verkey),
+		(*C.char)(verkey),
 		(C.cb_getKeyMetadata)(unsafe.Pointer(C.getKeyMetadataCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -189,7 +181,7 @@ func signCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, sigRaw *C.i
 }
 
 // Sign signs a message with a key
-func Sign(wh int, signerVK string, messageRaw []uint8, messageLen uint32) chan indyUtils.IndyResult {
+func Sign(wh int, signerVK unsafe.Pointer, messageRaw unsafe.Pointer, messageLen uint32) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -209,8 +201,8 @@ func Sign(wh int, signerVK string, messageRaw []uint8, messageLen uint32) chan i
 	// Call indy_crypto_sign
 	res := C.indy_crypto_sign(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(signerVK),
-		(*C.indy_u8_t)(C.CBytes(messageRaw)),
+		(*C.char)(signerVK),
+		(*C.indy_u8_t)(messageRaw),
 		C.indy_u32_t(messageLen),
 		(C.cb_sign)(unsafe.Pointer(C.signCB)))
 	if res != 0 {
@@ -233,7 +225,7 @@ func verifyCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, valid C.i
 }
 
 // Verify verify a signature with a verkey.
-func Verify(signerVK string, messageRaw []uint8, messageLen uint32, signatureRaw []uint8, signatureLen uint32) chan indyUtils.IndyResult {
+func Verify(signerVK unsafe.Pointer, messageRaw unsafe.Pointer, messageLen uint32, signatureRaw unsafe.Pointer, signatureLen uint32) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -253,10 +245,10 @@ func Verify(signerVK string, messageRaw []uint8, messageLen uint32, signatureRaw
 
 	// Call indy_crypto_verify
 	res := C.indy_crypto_verify(commandHandle,
-		C.CString(signerVK),
-		(*C.indy_u8_t)(C.CBytes(messageRaw)),
+		(*C.char)(signerVK),
+		(*C.indy_u8_t)(messageRaw),
 		C.indy_u32_t(messageLen),
-		(*C.indy_u8_t)(C.CBytes(signatureRaw)),
+		(*C.indy_u8_t)(signatureRaw),
 		C.indy_u32_t(signatureLen),
 		(C.cb_verify)(unsafe.Pointer(C.verifyCB)))
 	if res != 0 {
@@ -280,7 +272,7 @@ func anonCryptCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, msg *C
 }
 
 // AnonCrypt encrypts a message by anonymous-encryption scheme
-func AnonCrypt(recipientVK string, messageRaw []uint8, messageLen uint32) chan indyUtils.IndyResult {
+func AnonCrypt(recipientVK unsafe.Pointer, messageRaw unsafe.Pointer, messageLen uint32) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -304,8 +296,8 @@ func AnonCrypt(recipientVK string, messageRaw []uint8, messageLen uint32) chan i
 
 	// Call indy_crypto_anon_crypt
 	res := C.indy_crypto_anon_crypt(commandHandle,
-		C.CString(recipientVK),
-		(*C.indy_u8_t)(C.CBytes(messageRaw)),
+		(*C.char)(recipientVK),
+		(*C.indy_u8_t)(messageRaw),
 		C.indy_u32_t(messageLen),
 		(C.cb_anonCrypt)(unsafe.Pointer(C.anonCryptCB)))
 	if res != 0 {
@@ -329,7 +321,7 @@ func anonDecryptCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, msg 
 }
 
 // AnonDecrypt decrypts a message by anonymous-encryption scheme
-func AnonDecrypt(wh int, recipientVK string, messageRaw []uint8, messageLen uint32) chan indyUtils.IndyResult {
+func AnonDecrypt(wh int, recipientVK, messageRaw unsafe.Pointer, messageLen uint32) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 	/*
@@ -354,8 +346,8 @@ func AnonDecrypt(wh int, recipientVK string, messageRaw []uint8, messageLen uint
 	// Call indy_crypto_anon_decrypt
 	res := C.indy_crypto_anon_decrypt(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(recipientVK),
-		(*C.indy_u8_t)(&messageRaw[0]),
+		(*C.char)(recipientVK),
+		(*C.indy_u8_t)(messageRaw),
 		C.indy_u32_t(messageLen),
 		(C.cb_anonDecrypt)(unsafe.Pointer(C.anonDecryptCB)))
 	if res != 0 {
@@ -379,7 +371,7 @@ func packMsgCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, jwe *C.i
 }
 
 // PackMsg packs a message by encrypting the message and serializes it in a JWE-like format
-func PackMsg(wh int, messageRaw []uint8, messageLen uint32, receiverKeys string, sender string) chan indyUtils.IndyResult {
+func PackMsg(wh int, messageRaw unsafe.Pointer, messageLen uint32, receiverKeys, sender unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
@@ -404,10 +396,10 @@ func PackMsg(wh int, messageRaw []uint8, messageLen uint32, receiverKeys string,
 	// Call indy_pack_message
 	res := C.indy_pack_message(commandHandle,
 		(C.indy_handle_t)(wh),
-		(*C.indy_u8_t)(C.CBytes(messageRaw)),
+		(*C.indy_u8_t)(messageRaw),
 		C.indy_u32_t(messageLen),
-		C.CString(receiverKeys),
-		C.CString(sender),
+		(*C.char)(receiverKeys),
+		(*C.char)(sender),
 		(C.cb_packMsg)(unsafe.Pointer(C.packMsgCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -430,7 +422,7 @@ func unpackMsgCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, js *C.
 }
 
 // UnpackMsg unpacks a JWE-like formatted message outputted by indy_pack_message
-func UnpackMsg(wh int, messageRaw []uint8, messageLen uint32) chan indyUtils.IndyResult {
+func UnpackMsg(wh int, messageRaw unsafe.Pointer, messageLen uint32) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 	/*
@@ -447,7 +439,7 @@ func UnpackMsg(wh int, messageRaw []uint8, messageLen uint32) chan indyUtils.Ind
 
 	res := C.indy_unpack_message(commandHandle,
 		(C.indy_handle_t)(wh),
-		(*C.indy_u8_t)(C.CBytes(messageRaw)),
+		(*C.indy_u8_t)(messageRaw),
 		C.indy_u32_t(messageLen),
 		(C.cb_unpackMsg)(unsafe.Pointer(C.unpackMsgCB)))
 	if res != 0 {

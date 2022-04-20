@@ -12,11 +12,11 @@
 package indySDK
 
 import (
-	"fmt"
-	"github.com/google/uuid"
 	"github.com/joyride9999/IndySdkGoBindings/dbUtils"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"github.com/joyride9999/IndySdkGoBindings/wallet"
+	"fmt"
+	"github.com/google/uuid"
 	"testing"
 )
 
@@ -33,27 +33,27 @@ func TestPgStorageAddGetRecords(t *testing.T) {
 	}
 
 	// Create trustee wallet
-	trusteeConfig := wallet.Config{
-		ID:            "trustee",
+	trusteeCfg := wallet.Config{
+		ID:            "trustee321",
 		StorageType:   storageType,
 		StorageConfig: wallet.StorageConfig{Dsn: dsn, LogSql: 4},
 	}
 	trusteeCredential := wallet.Credential{
 		Key: "123",
 	}
-	errCreateWalletTrust := CreateWallet(trusteeConfig, trusteeCredential)
+	errCreateWalletTrust := CreateWallet(trusteeCfg, trusteeCredential)
 	if errCreateWalletTrust != nil && errCreateWalletTrust.Error() != indyUtils.GetIndyError(203) {
 		t.Errorf("CreateWallet() error = '%v'", errCreateWalletTrust)
 		return
 	}
 
-	whTrustee, errOpenTr := OpenWallet(trusteeConfig, trusteeCredential)
+	whTrustee, errOpenTr := OpenWallet(trusteeCfg, trusteeCredential)
 	if errOpenTr != nil {
 		t.Errorf("OpenWallet() error = '%v'", errOpenTr)
 		return
 	}
 
-	defer CloseWallet(whTrustee)
+	defer walletCleanup(whTrustee, trusteeCfg, trusteeCredential)
 
 	// Get did for trustee
 	_, _, errDidT := CreateAndStoreDID(whTrustee, "000000000000000000000000Trustee1")
@@ -95,7 +95,7 @@ func TestPgStorageCredentialSearchProof(t *testing.T) {
 	}
 
 	// Create trustee wallet
-	issuerConfig := wallet.Config{
+	issuerCfg := wallet.Config{
 		ID:            "issuer",
 		StorageType:   storageType,
 		StorageConfig: wallet.StorageConfig{Dsn: dsn, LogSql: 4},
@@ -103,19 +103,18 @@ func TestPgStorageCredentialSearchProof(t *testing.T) {
 	issuerCredential := wallet.Credential{
 		Key: "123",
 	}
-	errCreateWalletIssuer := CreateWallet(issuerConfig, issuerCredential)
+	errCreateWalletIssuer := CreateWallet(issuerCfg, issuerCredential)
 	if errCreateWalletIssuer != nil && errCreateWalletIssuer.Error() != indyUtils.GetIndyError(203) {
 		t.Errorf("CreateWallet() error = '%v'", errCreateWalletIssuer)
 		return
 	}
 
-	whIssuer, errOpenTr := OpenWallet(issuerConfig, issuerCredential)
+	whIssuer, errOpenTr := OpenWallet(issuerCfg, issuerCredential)
 	if errOpenTr != nil {
 		t.Errorf("OpenWallet() error = '%v'", errOpenTr)
 		return
 	}
-
-	defer walletCleanup(whIssuer, issuerConfig, issuerCredential)
+	defer walletCleanup(whIssuer, issuerCfg, issuerCredential)
 
 	// Get did for issuer
 	didIssuer, _, errDidIssuer := CreateAndStoreDID(whIssuer, "000000000000000000000000Trustee1")
@@ -125,7 +124,7 @@ func TestPgStorageCredentialSearchProof(t *testing.T) {
 	}
 
 	// holder wallet
-	holderConfig := wallet.Config{
+	holderCfg := wallet.Config{
 		ID:            "holder",
 		StorageType:   "postgresdb",
 		StorageConfig: wallet.StorageConfig{Dsn: dsn, LogSql: 4},
@@ -134,19 +133,19 @@ func TestPgStorageCredentialSearchProof(t *testing.T) {
 		Key: "123",
 	}
 
-	errCreateWalletHolder := CreateWallet(holderConfig, holderCredential)
+	errCreateWalletHolder := CreateWallet(holderCfg, holderCredential)
 	if errCreateWalletHolder != nil && errCreateWalletHolder.Error() != indyUtils.GetIndyError(203) {
 		t.Errorf("CreateWallet() error = '%v'", errCreateWalletHolder)
 		return
 	}
 
-	whHolder, errOpenHolder := OpenWallet(holderConfig, holderCredential)
+	whHolder, errOpenHolder := OpenWallet(holderCfg, holderCredential)
 	if errOpenHolder != nil {
 		t.Errorf("OpenWallet() error = '%v'", errOpenHolder)
 		return
 	}
 
-	defer walletCleanup(whHolder, holderConfig, holderCredential)
+	defer walletCleanup(whHolder, holderCfg, holderCredential)
 
 	// Get did for holder
 	didHolder, _, errDidH := CreateAndStoreDID(whHolder, "")

@@ -22,8 +22,8 @@ package blobstorage
 */
 import "C"
 import (
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 	"unsafe"
 )
 
@@ -56,18 +56,15 @@ func openBlobStorageWriterCB(commandHandle C.indy_handle_t, indyError C.indy_err
 }
 
 // OpenBlobStorageReader Open a blob storage reader
-func OpenBlobStorageReader(blobStorageType string, configJson string) chan indyUtils.IndyResult {
+func OpenBlobStorageReader(blobStorageType, configJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-	/*
-
-	 */
 
 	// Call indy_open_blob_storage_reader
 	res := C.indy_open_blob_storage_reader(commandHandle,
-		C.CString(blobStorageType),
-		C.CString(configJson),
+		(*C.char)(blobStorageType),
+		(*C.char)(configJson),
 		(C.cb_open_blob_storage)(unsafe.Pointer(C.openBlobStorageReaderCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -81,18 +78,15 @@ func OpenBlobStorageReader(blobStorageType string, configJson string) chan indyU
 }
 
 // OpenBlobStorageWriter Open a blob storage writer
-func OpenBlobStorageWriter(blobStorageType string, configJson string) chan indyUtils.IndyResult {
+func OpenBlobStorageWriter(blobStorageType, configJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-	/*
-
-	 */
 
 	// Call indy_open_blob_storage_writer
 	res := C.indy_open_blob_storage_writer(commandHandle,
-		C.CString(blobStorageType),
-		C.CString(configJson),
+		(*C.char)(blobStorageType),
+		(*C.char)(configJson),
 		(C.cb_open_blob_storage)(unsafe.Pointer(C.openBlobStorageWriterCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))

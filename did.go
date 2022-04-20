@@ -12,12 +12,41 @@
 
 package indySDK
 
-import "github.com/joyride9999/IndySdkGoBindings/did"
+/*
+#include <stdlib.h>
+*/
+import "C"
+import (
+	"github.com/joyride9999/IndySdkGoBindings/did"
+	"encoding/json"
+	"errors"
+	"unsafe"
+)
 
 // CreateAndStoreDID creates and DID with keys ... nothing is written to blockchain
 // returns did, verkey, error
 func CreateAndStoreDID(walletHandle int, seed string) (string, string, error) {
-	channel := did.CreateAndStoreMyDid(walletHandle, seed)
+
+	type didJson struct {
+		Did        string `json:"did,omitempty"`
+		Seed       string `json:"seed,omitempty"`
+		Crypto     string `json:"crypto_type,omitempty"`
+		Cid        string `json:"cid,omitempty"`
+		MethodName string `json:"method_name,omitempty"`
+	}
+	didjs := didJson{
+		Seed: seed,
+	}
+
+	didcfg, err := json.Marshal(didjs)
+	if err != nil {
+		return "", "", errors.New("cant read json")
+	}
+
+	upDid := unsafe.Pointer(C.CString(string(didcfg)))
+	defer C.free(upDid)
+
+	channel := did.CreateAndStoreMyDid(walletHandle, upDid)
 	result := <-channel
 	if result.Error != nil {
 		return "", "", result.Error
@@ -27,7 +56,13 @@ func CreateAndStoreDID(walletHandle int, seed string) (string, string, error) {
 
 // ReplaceKeyStart generates temporary key for an existing DID.
 func ReplaceKeyStart(walletHandle int, Did string, identityJson string) (string, error) {
-	channel := did.ReplaceKeyStart(walletHandle, Did, identityJson)
+
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	upIdentityJson := unsafe.Pointer(C.CString(identityJson))
+	defer C.free(upIdentityJson)
+
+	channel := did.ReplaceKeyStart(walletHandle, upDid, upIdentityJson)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -37,21 +72,27 @@ func ReplaceKeyStart(walletHandle int, Did string, identityJson string) (string,
 
 // ReplaceKeyApply applies temporary keys as main for existing DID
 func ReplaceKeyApply(walletHandle int, Did string) error {
-	channel := did.ReplaceKeyApply(walletHandle, Did)
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	channel := did.ReplaceKeyApply(walletHandle, upDid)
 	result := <-channel
 	return result.Error
 }
 
 // StoreTheirDid saves DID for a pairwise connection in a secured wallet to verify transaction.
 func StoreTheirDid(walletHandle int, identityJson string) error {
-	channel := did.StoreTheirDid(walletHandle, identityJson)
+	upIdentityJson := unsafe.Pointer(C.CString(identityJson))
+	defer C.free(upIdentityJson)
+	channel := did.StoreTheirDid(walletHandle, upIdentityJson)
 	result := <-channel
 	return result.Error
 }
 
 // KeyForDid returns ver key for DID.
 func KeyForDid(poolHandle int, walletHandle int, Did string) (string, error) {
-	channel := did.KeyForDid(poolHandle, walletHandle, Did)
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	channel := did.KeyForDid(poolHandle, walletHandle, upDid)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -62,7 +103,9 @@ func KeyForDid(poolHandle int, walletHandle int, Did string) (string, error) {
 // KeyForLocalDID gets the key for the local DID.
 // returns key, error
 func KeyForLocalDID(walletHandle int, Did string) (string, error) {
-	channel := did.KeyForLocalDid(walletHandle, Did)
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	channel := did.KeyForLocalDid(walletHandle, upDid)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -72,14 +115,22 @@ func KeyForLocalDID(walletHandle int, Did string) (string, error) {
 
 // SetEndPointForDid set/replaces endpoint information for the given DID
 func SetEndPointForDid(walletHandle int, Did string, address string, transportKey string) error {
-	channel := did.SetEndPointForDid(walletHandle, Did, address, transportKey)
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	upAddress := unsafe.Pointer(C.CString(address))
+	defer C.free(upAddress)
+	upTransportKey := unsafe.Pointer(C.CString(transportKey))
+	defer C.free(upTransportKey)
+	channel := did.SetEndPointForDid(walletHandle, upDid, upAddress, upTransportKey)
 	result := <-channel
 	return result.Error
 }
 
 // GetEndPointForDid returns endpoint information for the given DID
 func GetEndPointForDid(walletHandle int, poolHandle int, Did string) (string, string, error) {
-	channel := did.GetEndPointForDid(walletHandle, poolHandle, Did)
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	channel := did.GetEndPointForDid(walletHandle, poolHandle, upDid)
 	result := <-channel
 	if result.Error != nil {
 		return "", "", result.Error
@@ -89,14 +140,20 @@ func GetEndPointForDid(walletHandle int, poolHandle int, Did string) (string, st
 
 // SetDidMetadata saves/replaces meta information for the given DID.
 func SetDidMetadata(walletHandle int, Did string, metadata string) error {
-	channel := did.SetDidMetadata(walletHandle, Did, metadata)
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	upMetadata := unsafe.Pointer(C.CString(metadata))
+	defer C.free(upMetadata)
+	channel := did.SetDidMetadata(walletHandle, upDid, upMetadata)
 	result := <-channel
 	return result.Error
 }
 
 // GetDidMetadata retrieves meta information for the given DID.
 func GetDidMetadata(walletHandle int, Did string) (string, error) {
-	channel := did.GetDidMetadata(walletHandle, Did)
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	channel := did.GetDidMetadata(walletHandle, upDid)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -106,7 +163,9 @@ func GetDidMetadata(walletHandle int, Did string) (string, error) {
 
 // GetDidWithMetadata retrieves DID, metadata and verkey stored in the wallet.
 func GetDidWithMetadata(walletHandle int, Did string) (string, error) {
-	channel := did.GetDidWithMetadata(walletHandle, Did)
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	channel := did.GetDidWithMetadata(walletHandle, upDid)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -126,7 +185,12 @@ func ListDidsWithMeta(walletHandle int) (string, error) {
 
 // AbbreviateVerKey retrieves abbreviated key if exists, otherwise returns full verkey.
 func AbbreviateVerKey(Did string, verKey string) (string, error) {
-	channel := did.AbbreviateVerKey(Did, verKey)
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	upVerKey := unsafe.Pointer(C.CString(verKey))
+	defer C.free(upVerKey)
+
+	channel := did.AbbreviateVerKey(upDid, upVerKey)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -136,7 +200,13 @@ func AbbreviateVerKey(Did string, verKey string) (string, error) {
 
 // QualifyDid updates DID related entities stored in the wallet.
 func QualifyDid(walletHandle int, Did string, method string) (string, error) {
-	channel := did.QualifyDid(walletHandle, Did, method)
+
+	upDid := unsafe.Pointer(C.CString(Did))
+	defer C.free(upDid)
+	upMethod := unsafe.Pointer(C.CString(method))
+	defer C.free(upMethod)
+
+	channel := did.QualifyDid(walletHandle, upDid, upMethod)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error

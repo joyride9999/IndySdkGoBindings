@@ -13,8 +13,8 @@
 package indySDK
 
 import (
-	"fmt"
 	"github.com/joyride9999/IndySdkGoBindings/wallet"
+	"fmt"
 	"testing"
 )
 

@@ -47,9 +47,9 @@ extern void verifyWithAddressCB(indy_handle_t, indy_error_t, bool);
 */
 import "C"
 import (
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"encoding/json"
 	"errors"
-	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"unsafe"
 )
 

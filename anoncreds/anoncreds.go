@@ -92,8 +92,8 @@ extern void toUnqualifiedCB(indy_handle_t, indy_error_t, char*);
 */
 import "C"
 import (
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 	"unsafe"
 )
 
@@ -118,7 +118,7 @@ func issuerRevokeCredentialCB(commandHandle C.indy_handle_t, indyError C.indy_er
 //
 //    This call returns revoc registry delta as json file intended to be shared as REVOC_REG_ENTRY transaction.
 //    Note that it is possible to accumulate deltas to reduce ledger load.
-func IssuerRevokeCredential(wh int, bh int, revRegId string, credRevId string) chan indyUtils.IndyResult {
+func IssuerRevokeCredential(wh int, bh int, revRegId unsafe.Pointer, credRevId unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -135,8 +135,8 @@ func IssuerRevokeCredential(wh int, bh int, revRegId string, credRevId string) c
 	res := C.indy_issuer_revoke_credential(commandHandle,
 		(C.indy_handle_t)(wh),
 		(C.indy_handle_t)(bh),
-		C.CString(revRegId),
-		C.CString(credRevId),
+		(*C.char)(revRegId),
+		(*C.char)(credRevId),
 		(C.cb_issuerRevokeCredential)(unsafe.Pointer(C.issuerRevokeCredentialCB)))
 
 	if res != 0 {
@@ -198,7 +198,7 @@ func createRevocationStateCB(commandHandle C.indy_handle_t, indyError C.indy_err
 }
 
 // CreateRevocationState        Create revocation state for a credential in the particular time moment.
-func CreateRevocationState(blobReaderHandle int, revRegDefJson string, revRegDeltaJson string, timestamp uint64, credRevId string) chan indyUtils.IndyResult {
+func CreateRevocationState(blobReaderHandle int, revRegDefJson unsafe.Pointer, revRegDeltaJson unsafe.Pointer, timestamp uint64, credRevId unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -218,10 +218,10 @@ func CreateRevocationState(blobReaderHandle int, revRegDefJson string, revRegDel
 	*/
 	res := C.indy_create_revocation_state(commandHandle,
 		(C.indy_handle_t)(blobReaderHandle),
-		C.CString(revRegDefJson),
-		C.CString(revRegDeltaJson),
+		(*C.char)(revRegDefJson),
+		(*C.char)(revRegDeltaJson),
 		C.ulonglong(timestamp),
-		C.CString(credRevId),
+		(*C.char)(credRevId),
 		(C.cb_createRevocationState)(unsafe.Pointer(C.createRevocationStateCB)))
 
 	if res != 0 {
@@ -265,7 +265,7 @@ func createAndStoreRevocRegCB(commandHandle C.indy_handle_t, indyError C.indy_er
 //    Some revocation registry types (for example, 'CL_ACCUM') can require generation of binary blob called tails used to hide information about revoked credentials in public
 //    revocation registry and intended to be distributed out of leger (REVOC_REG_DEF transaction will still contain uri and hash of tails).
 //    This call requires access to pre-configured blob storage writer instance handle that will allow to write generated tails.
-func CreateAndStoreRevocReg(wh int, issuerDid string, revocDefType string, tag string, credDefId string, configJson string, blobHandle int) chan indyUtils.IndyResult {
+func CreateAndStoreRevocReg(wh int, issuerDid unsafe.Pointer, revocDefType unsafe.Pointer, tag unsafe.Pointer, credDefId unsafe.Pointer, configJson unsafe.Pointer, blobHandle int) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -327,11 +327,11 @@ func CreateAndStoreRevocReg(wh int, issuerDid string, revocDefType string, tag s
 	*/
 	res := C.indy_issuer_create_and_store_revoc_reg(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(issuerDid),
-		C.CString(revocDefType),
-		C.CString(tag),
-		C.CString(credDefId),
-		C.CString(configJson),
+		(*C.char)(issuerDid),
+		(*C.char)(revocDefType),
+		(*C.char)(tag),
+		(*C.char)(credDefId),
+		(*C.char)(configJson),
 		(C.indy_handle_t)(blobHandle),
 		(C.cb_createAndStoreRevocReg)(unsafe.Pointer(C.createAndStoreRevocRegCB)))
 
@@ -359,7 +359,7 @@ func proverGetCredentialCB(commandHandle C.indy_handle_t, indyError C.indy_error
 }
 
 // ProverGetCredential   Gets human readable credential by the given id.
-func ProverGetCredential(wh int, credentialId string) chan indyUtils.IndyResult {
+func ProverGetCredential(wh int, credentialId unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -381,7 +381,7 @@ func ProverGetCredential(wh int, credentialId string) chan indyUtils.IndyResult 
 	*/
 	res := C.indy_prover_get_credential(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(credentialId),
+		(*C.char)(credentialId),
 		(C.cb_proverGetCredential)(unsafe.Pointer(C.proverGetCredentialCB)))
 
 	if res != 0 {
@@ -412,19 +412,11 @@ func verifierVerifyProofCB(commandHandle C.indy_handle_t, indyError C.indy_error
 //
 //    IMPORTANT: You must use *_id's (`schema_id`, `cred_def_id`, `rev_reg_id`) listed in `proof[identifiers]`
 //        as the keys for corresponding `schemas_json`, `credential_defs_json`, `rev_reg_defs_json`, `rev_regs_json` objects.
-func VerifierVerifyProof(proofRequestJson string, proofJson string, schemasJson string, credDefsJson string, revRegDefsJson string, revRegsJson string) chan indyUtils.IndyResult {
+func VerifierVerifyProof(proofRequestJson, proofJson, schemasJson, credDefsJson, revRegDefsJson, revRegsJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	// Library needs this even if empty ... so is not optional
-	if len(revRegDefsJson) == 0 {
-		revRegDefsJson = "{}"
-	}
-	if len(revRegsJson) == 0 {
-		revRegsJson = "{}"
-	}
 
 	/*
 			  :param proof_request_json:
@@ -518,12 +510,12 @@ func VerifierVerifyProof(proofRequestJson string, proofJson string, schemasJson 
 		    :return: valid: true - if signature is valid, false - otherwise
 	*/
 	res := C.indy_verifier_verify_proof(commandHandle,
-		C.CString(proofRequestJson),
-		C.CString(proofJson),
-		C.CString(schemasJson),
-		C.CString(credDefsJson),
-		C.CString(revRegDefsJson),
-		C.CString(revRegsJson),
+		(*C.char)(proofRequestJson),
+		(*C.char)(proofJson),
+		(*C.char)(schemasJson),
+		(*C.char)(credDefsJson),
+		(*C.char)(revRegDefsJson),
+		(*C.char)(revRegsJson),
 		(C.cb_verifierVerifyProof)(unsafe.Pointer(C.verifierVerifyProofCB)))
 
 	if res != 0 {
@@ -556,16 +548,11 @@ func proverCreateProofCB(commandHandle C.indy_handle_t, indyError C.indy_error_t
 //    All required schemas, public keys and revocation registries must be provided.
 //    The proof request also contains nonce.
 //    The proof contains either proof or self-attested attribute value for each requested attribute.
-func ProverCreateProof(wh int, proofRequestJson string, requestedCredentialsJson string, masterSecretId string, schemasForAttrsJson string, credentialDefsForAttrsJson string, revStatesJson string) chan indyUtils.IndyResult {
+func ProverCreateProof(wh int, proofRequestJson, requestedCredentialsJson, masterSecretId, schemasForAttrsJson, credentialDefsForAttrsJson, revStatesJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	// Library needs this even if empty ... so is not optional
-	if len(revStatesJson) == 0 {
-		revStatesJson = "{}"
-	}
 
 	/*
 			:param wallet_handle: wallet handle (created by open_wallet).
@@ -718,12 +705,12 @@ func ProverCreateProof(wh int, proofRequestJson string, requestedCredentialsJson
 	// Call C.indy_prover_create_proof
 	res := C.indy_prover_create_proof(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(proofRequestJson),
-		C.CString(requestedCredentialsJson),
-		C.CString(masterSecretId),
-		C.CString(schemasForAttrsJson),
-		C.CString(credentialDefsForAttrsJson),
-		C.CString(revStatesJson),
+		(*C.char)(proofRequestJson),
+		(*C.char)(requestedCredentialsJson),
+		(*C.char)(masterSecretId),
+		(*C.char)(schemasForAttrsJson),
+		(*C.char)(credentialDefsForAttrsJson),
+		(*C.char)(revStatesJson),
 		(C.cb_proverCreateProof)(unsafe.Pointer(C.proverCreateProofCB)))
 
 	if res != 0 {
@@ -750,7 +737,7 @@ func proverFetchCredentialsForProofReqCB(commandHandle C.indy_handle_t, indyErro
 }
 
 // ProverFetchCredentialsForProofReq   Fetch next records for the requested item using proof request search handle (created by prover_search_credentials_for_proof_req).
-func ProverFetchCredentialsForProofReq(searchHandle int, itemReferent string, count int) chan indyUtils.IndyResult {
+func ProverFetchCredentialsForProofReq(searchHandle int, itemReferent unsafe.Pointer, count int) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -778,7 +765,7 @@ func ProverFetchCredentialsForProofReq(searchHandle int, itemReferent string, co
 	*/
 	res := C.indy_prover_fetch_credentials_for_proof_req(commandHandle,
 		(C.indy_handle_t)(searchHandle),
-		C.CString(itemReferent),
+		(*C.char)(itemReferent),
 		(C.indy_u32_t)(count),
 		(C.cb_proverFetchCredentialsForProofReq)(unsafe.Pointer(C.proverFetchCredentialsForProofReqCB)))
 
@@ -809,17 +796,11 @@ func proverSearchForCredentialsForProofReqCB(commandHandle C.indy_handle_t, indy
 //
 //    Instead of immediately returning of fetched credentials this call returns search_handle that can be used later
 //    to fetch records by small batches (with prover_fetch_credentials_for_proof_req).
-func ProverSearchForCredentialsForProofReq(wh int, proofRequestJson string, extraQueryJson string) chan indyUtils.IndyResult {
+func ProverSearchForCredentialsForProofReq(wh int, proofRequestJson, extraQueryJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-	var optionalQuery *C.char
-	if len(extraQueryJson) > 0 {
-		optionalQuery = C.CString(extraQueryJson)
-	} else {
-		optionalQuery = nil
-	}
 
 	/*
 	  param wallet_handle: wallet handle (created by open_wallet).
@@ -902,8 +883,8 @@ func ProverSearchForCredentialsForProofReq(wh int, proofRequestJson string, extr
 	*/
 	res := C.indy_prover_search_credentials_for_proof_req(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(proofRequestJson),
-		optionalQuery,
+		(*C.char)(proofRequestJson),
+		(*C.char)(extraQueryJson),
 		(C.cb_proverSearchForCredentialsForProofReq)(unsafe.Pointer(C.proverSearchForCredentialsForProofReqCB)))
 
 	if res != 0 {
@@ -968,24 +949,18 @@ func proverCreateMasterSecretCB(commandHandle C.indy_handle_t, indyError C.indy_
 
 // ProverCreateMasterSecret Creates a master secret with a given name and stores it in the wallet.
 // The name must be unique.
-func ProverCreateMasterSecret(wh int, name string) chan indyUtils.IndyResult {
+func ProverCreateMasterSecret(wh int, secretName unsafe.Pointer) chan indyUtils.IndyResult {
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
-	var secretName *C.char
-	if len(name) > 0 {
-		secretName = (C.CString)(name)
-	} else {
-		secretName = nil
-	}
 	/*
 			 :param wallet_handle: wallet handle (created by open_wallet).
 		    :param master_secret_name: (optional, if not present random one will be generated) new master id
 	*/
 	res := C.indy_prover_create_master_secret(commandHandle,
 		(C.indy_handle_t)(wh),
-		secretName,
+		(*C.char)(secretName),
 		(C.cb_proverCreateMasterSecret)(unsafe.Pointer(C.proverCreateMasterSecretCB)))
 
 	if res != 0 {
@@ -1014,7 +989,7 @@ func issuerCreateCredentialOfferCB(commandHandle C.indy_handle_t, indyError C.in
 // IssuerCreateCredentialOffer Create credential offer that will be used by Prover for
 //    credential request creation. Offer includes nonce and key correctness proof
 //    for authentication between protocol steps and integrity checking.
-func IssuerCreateCredentialOffer(wh int, credDefinitionId string) chan indyUtils.IndyResult {
+func IssuerCreateCredentialOffer(wh int, credDefinitionId unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1036,7 +1011,7 @@ func IssuerCreateCredentialOffer(wh int, credDefinitionId string) chan indyUtils
 	*/
 	res := C.indy_issuer_create_credential_offer(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(credDefinitionId),
+		(*C.char)(credDefinitionId),
 		(C.cb_issuerCreateCredentialOffer)(unsafe.Pointer(C.issuerCreateCredentialOfferCB)))
 
 	if res != 0 {
@@ -1068,7 +1043,7 @@ func proverCreateCredentialRequestCB(commandHandle C.indy_handle_t, indyError C.
 //    The method creates a blinded master secret for a master secret identified by a provided name.
 //    The master secret identified by the name must be already stored in the secure wallet (see prover_create_master_secret)
 //    The blinded master secret is a part of the credential request.
-func ProverCreateCredentialRequest(wh int, proverDID string, credentialOfferJSON, credentialDefinitionJSON, masterSecretId string) chan indyUtils.IndyResult {
+func ProverCreateCredentialRequest(wh int, proverDID, credentialOfferJSON, credentialDefinitionJSON, masterSecretId unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1107,10 +1082,10 @@ func ProverCreateCredentialRequest(wh int, proverDID string, credentialOfferJSON
 	*/
 	res := C.indy_prover_create_credential_req(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(proverDID),
-		C.CString(credentialOfferJSON),
-		C.CString(credentialDefinitionJSON),
-		C.CString(masterSecretId),
+		(*C.char)(proverDID),
+		(*C.char)(credentialOfferJSON),
+		(*C.char)(credentialDefinitionJSON),
+		(*C.char)(masterSecretId),
 		(C.cb_proverCreateCredentialRequest)(unsafe.Pointer(C.proverCreateCredentialRequestCB)))
 
 	if res != 0 {
@@ -1138,7 +1113,7 @@ func issuerCreateSchemaCB(commandHandle C.indy_handle_t, indyError C.indy_error_
 }
 
 // IssuerCreateSchema creates a credential schema
-func IssuerCreateSchema(submitterDid string, name string, version string, attrs string) chan indyUtils.IndyResult {
+func IssuerCreateSchema(submitterDid unsafe.Pointer, name unsafe.Pointer, version unsafe.Pointer, attrs unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1162,10 +1137,10 @@ func IssuerCreateSchema(submitterDid string, name string, version string, attrs 
 	       }
 	*/
 	res := C.indy_issuer_create_schema(commandHandle,
-		C.CString(submitterDid),
-		C.CString(name),
-		C.CString(version),
-		C.CString(attrs),
+		(*C.char)(submitterDid),
+		(*C.char)(name),
+		(*C.char)(version),
+		(*C.char)(attrs),
 		(C.cb_issuerCreateSchema)(unsafe.Pointer(C.issuerCreateSchemaCB)))
 
 	if res != 0 {
@@ -1202,7 +1177,8 @@ func issuerCreateAndStoreCredentialDefCB(commandHandle C.indy_handle_t, indyErro
 //
 //    Note: Use combination of `issuer_rotate_credential_def_start` and `issuer_rotate_credential_def_apply` functions
 //    to generate new keys for an existing credential definition.
-func IssuerCreateAndStoreCredentialDef(wh int, issuerDid string, schemaJson string, tag string, signatureType string, configJson string) chan indyUtils.IndyResult {
+func IssuerCreateAndStoreCredentialDef(wh int, issuerDid unsafe.Pointer, schemaJson unsafe.Pointer, tag unsafe.Pointer,
+	signatureType unsafe.Pointer, configJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1249,11 +1225,11 @@ func IssuerCreateAndStoreCredentialDef(wh int, issuerDid string, schemaJson stri
 	*/
 	res := C.indy_issuer_create_and_store_credential_def(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(issuerDid),
-		C.CString(schemaJson),
-		C.CString(tag),
-		C.CString(signatureType),
-		C.CString(configJson),
+		(*C.char)(issuerDid),
+		(*C.char)(schemaJson),
+		(*C.char)(tag),
+		(*C.char)(signatureType),
+		(*C.char)(configJson),
 		(C.cb_issuerCreateAndStoreCredentialDef)(unsafe.Pointer(C.issuerCreateAndStoreCredentialDefCB)))
 
 	if res != 0 {
@@ -1278,7 +1254,7 @@ func issuerRotateCredentialDefStartCB(commandHandle C.indy_handle_t, indyError C
 	}
 }
 
-func IssuerRotateCredentialDefStart(walletHandle int, credDefID string, configJson string) chan indyUtils.IndyResult {
+func IssuerRotateCredentialDefStart(walletHandle int, credDefID unsafe.Pointer, configJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1303,8 +1279,8 @@ func IssuerRotateCredentialDefStart(walletHandle int, credDefID string, configJs
 	// Call C.indy_issuer_rotate_credential_def_start
 	res := C.indy_issuer_rotate_credential_def_start(commandHandle,
 		C.indy_handle_t(walletHandle),
-		C.CString(credDefID),
-		C.CString(configJson),
+		(*C.char)(credDefID),
+		(*C.char)(configJson),
 		(C.cb_issuerRotateCredentialDefStart)(unsafe.Pointer(C.issuerRotateCredentialDefStartCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1326,7 +1302,7 @@ func issuerRotateCredentialDefApplyCB(commandHandle C.indy_handle_t, indyError C
 	}
 }
 
-func IssuerRotateCredentialDefApply(walletHandle int, credDefID string) chan indyUtils.IndyResult {
+func IssuerRotateCredentialDefApply(walletHandle int, credDefID unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
@@ -1343,7 +1319,7 @@ func IssuerRotateCredentialDefApply(walletHandle int, credDefID string) chan ind
 	// Call C.indy_issuer_rotate_credential_def_start
 	res := C.indy_issuer_rotate_credential_def_apply(commandHandle,
 		C.indy_handle_t(walletHandle),
-		C.CString(credDefID),
+		(*C.char)(credDefID),
 		(C.cb_issuerRotateCredentialDefApply)(unsafe.Pointer(C.issuerRotateCredentialDefApplyCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1381,7 +1357,7 @@ func issuerCreateCredentialCB(commandHandle C.indy_handle_t, indyError C.indy_er
 }
 
 // IssuerCreateCredential creates a credential
-func IssuerCreateCredential(wh int, credOfferJson string, credRequestJson string, credentialTranscript string, revocRegistryId string, blobHandle int) chan indyUtils.IndyResult {
+func IssuerCreateCredential(wh int, credOfferJson, credRequestJson, credentialTranscript, revocRegistryId unsafe.Pointer, blobHandle int) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1437,26 +1413,14 @@ func IssuerCreateCredential(wh int, credOfferJson string, credRequestJson string
 	     revoc_reg_delta_json: Revocation registry delta json with a newly issued credential
 	*/
 
-	var res C.indy_error_t
-	if len(revocRegistryId) > 0 {
-		res = C.indy_issuer_create_credential(commandHandle,
-			(C.indy_handle_t)(wh),
-			C.CString(credOfferJson),
-			C.CString(credRequestJson),
-			C.CString(credentialTranscript),
-			C.CString(revocRegistryId),
-			(C.indy_handle_t)(blobHandle),
-			(C.cb_issuerCreateCredential)(unsafe.Pointer(C.issuerCreateCredentialCB)))
-	} else {
-		res = C.indy_issuer_create_credential(commandHandle,
-			(C.indy_handle_t)(wh),
-			C.CString(credOfferJson),
-			C.CString(credRequestJson),
-			C.CString(credentialTranscript),
-			nil,
-			(C.int)(blobHandle),
-			(C.cb_issuerCreateCredential)(unsafe.Pointer(C.issuerCreateCredentialCB)))
-	}
+	res := C.indy_issuer_create_credential(commandHandle,
+		(C.indy_handle_t)(wh),
+		(*C.char)(credOfferJson),
+		(*C.char)(credRequestJson),
+		(*C.char)(credentialTranscript),
+		(*C.char)(revocRegistryId),
+		(C.indy_handle_t)(blobHandle),
+		(C.cb_issuerCreateCredential)(unsafe.Pointer(C.issuerCreateCredentialCB)))
 
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1497,24 +1461,11 @@ func proverStoreCredentialCB(commandHandle C.indy_handle_t, indyError C.indy_err
 //            "attr::<attribute name>::marker": "1",
 //            "attr::<attribute name>::value": <attribute raw value>,
 //        }
-func ProverStoreCredential(wh int, credentialId string, credRequestMetadataJson string, credJson string, credDefJson string, revocRegDefJson string) chan indyUtils.IndyResult {
+func ProverStoreCredential(wh int, credentialId, credRequestMetadataJson, credJson, credDefJson, revocRegDefJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-	var credId *C.char
-	if len(credentialId) > 0 {
-		credId = (C.CString)(credentialId)
-	} else {
-		credId = nil
-	}
-
-	var revRegDef *C.char
-	if len(revocRegDefJson) > 0 {
-		revRegDef = (C.CString)(revocRegDefJson)
-	} else {
-		revRegDef = nil
-	}
 
 	/*
 	 :param wallet_handle: wallet handle (created by open_wallet).
@@ -1528,11 +1479,11 @@ func ProverStoreCredential(wh int, credentialId string, credRequestMetadataJson 
 
 	res := C.indy_prover_store_credential(commandHandle,
 		(C.indy_handle_t)(wh),
-		credId,
-		C.CString(credRequestMetadataJson),
-		C.CString(credJson),
-		C.CString(credDefJson),
-		revRegDef,
+		(*C.char)(credentialId),
+		(*C.char)(credRequestMetadataJson),
+		(*C.char)(credJson),
+		(*C.char)(credDefJson),
+		(*C.char)(revocRegDefJson),
 		(C.cb_proverStoreCredential)(unsafe.Pointer(C.proverStoreCredentialCB)))
 
 	if res != 0 {
@@ -1554,7 +1505,7 @@ func proverDeleteCredentialCB(commandHandle C.indy_handle_t, indyError C.indy_er
 	}
 }
 
-func ProverDeleteCredential(walletHandle int, credentialID string) chan indyUtils.IndyResult {
+func ProverDeleteCredential(walletHandle int, credentialID unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1570,7 +1521,7 @@ func ProverDeleteCredential(walletHandle int, credentialID string) chan indyUtil
 	// Call C.indy_prover_delete_credential
 	res := C.indy_prover_delete_credential(commandHandle,
 		C.indy_handle_t(walletHandle),
-		C.CString(credentialID),
+		(*C.char)(credentialID),
 		(C.cb_proverDeleteCredential)(unsafe.Pointer(C.proverDeleteCredentialCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1594,7 +1545,7 @@ func proverGetCredentialsCB(commandHandle C.indy_handle_t, indyError C.indy_erro
 	}
 }
 
-func ProverGetCredentials(walletHandle int, filterJson string) chan indyUtils.IndyResult {
+func ProverGetCredentials(walletHandle int, filterJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
@@ -1630,7 +1581,7 @@ func ProverGetCredentials(walletHandle int, filterJson string) chan indyUtils.In
 	// Call C.indy_prover_get_credentials
 	res := C.indy_prover_get_credentials(commandHandle,
 		C.indy_handle_t(walletHandle),
-		C.CString(filterJson),
+		(*C.char)(filterJson),
 		(C.cb_proverGetCredentials)(unsafe.Pointer(C.proverGetCredentialsCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1654,7 +1605,7 @@ func proverGetCredentialsForProofReqCB(commandHandle C.indy_handle_t, indyError 
 	}
 }
 
-func ProverGetCredentialsForProofReq(walletHandle int, proofReqJson string) chan indyUtils.IndyResult {
+func ProverGetCredentialsForProofReq(walletHandle int, proofReqJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
@@ -1754,7 +1705,7 @@ func ProverGetCredentialsForProofReq(walletHandle int, proofReqJson string) chan
 	// Call C.indy_prover_get_credentials_for_proof_req
 	res := C.indy_prover_get_credentials_for_proof_req(commandHandle,
 		C.indy_handle_t(walletHandle),
-		C.CString(proofReqJson),
+		(*C.char)(proofReqJson),
 		(C.cb_proverGetCredentialsForProofReq)(unsafe.Pointer(C.proverGetCredentialsForProofReqCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1779,7 +1730,7 @@ func proverSearchCredentialsCB(commandHandle C.indy_handle_t, indyError C.indy_e
 	}
 }
 
-func ProverSearchCredentials(walletHandle int, queryJson string) chan indyUtils.IndyResult {
+func ProverSearchCredentials(walletHandle int, queryJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
@@ -1804,7 +1755,7 @@ func ProverSearchCredentials(walletHandle int, queryJson string) chan indyUtils.
 	// Call C.indy_prover_search_credentials
 	res := C.indy_prover_search_credentials(commandHandle,
 		C.indy_handle_t(walletHandle),
-		C.CString(queryJson),
+		(*C.char)(queryJson),
 		(C.cb_proverSearchCredentials)(unsafe.Pointer(C.proverSearchCredentialsCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1877,7 +1828,7 @@ func toUnqualifiedCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, re
 	}
 }
 
-func ToUnqualified(entity string) chan indyUtils.IndyResult {
+func ToUnqualified(entity unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
@@ -1907,7 +1858,7 @@ func ToUnqualified(entity string) chan indyUtils.IndyResult {
 
 	// Call C.indy_to_unqualified
 	res := C.indy_to_unqualified(commandHandle,
-		C.CString(entity),
+		(*C.char)(entity),
 		(C.cb_proverGetCredentials)(unsafe.Pointer(C.proverGetCredentialsCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))

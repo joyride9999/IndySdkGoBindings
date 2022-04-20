@@ -22,8 +22,8 @@ extern void collectCB(indy_handle_t, indy_error_t, char*);
 import "C"
 
 import (
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 )
 
 //export collectCB

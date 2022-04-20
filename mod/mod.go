@@ -19,22 +19,14 @@ package mod
 */
 import "C"
 import (
-	"encoding/json"
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
+	"unsafe"
 )
 
 // SetRuntimeConfig set libindy runtime configuration
-func SetRuntimeConfig(config Config) chan indyUtils.IndyResult {
+func SetRuntimeConfig(config unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
-
-	jsonCoinfig, err := json.Marshal(config)
-	if err != nil {
-		go func() { indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: err}) }()
-		return future
-	}
-
-	configString := string(jsonCoinfig)
 
 	/*
 		Set libindy runtime configuration. Can be optionally called to change current params.
@@ -48,7 +40,7 @@ func SetRuntimeConfig(config Config) chan indyUtils.IndyResult {
 	*/
 
 	// Call indy_set_runtime_config
-	res := C.indy_set_runtime_config(C.CString(configString))
+	res := C.indy_set_runtime_config((*C.char)(config))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
 		go func() { indyUtils.RemoveFuture((int)(handle), indyUtils.IndyResult{Error: errors.New(errMsg)}) }()

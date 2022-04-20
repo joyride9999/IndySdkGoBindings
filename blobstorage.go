@@ -12,11 +12,24 @@
 
 package indySDK
 
-import "github.com/joyride9999/IndySdkGoBindings/blobstorage"
+/*
+#include <stdlib.h>
+*/
+import "C"
+import (
+	"github.com/joyride9999/IndySdkGoBindings/blobstorage"
+	"unsafe"
+)
 
 // IndyOpenBlobStorageReader opens blob reader
 func IndyOpenBlobStorageReader(blobStorageType string, config string) (blobHandle int, err error) {
-	channel := blobstorage.OpenBlobStorageReader(blobStorageType, config)
+
+	upBlobStorageType := unsafe.Pointer(C.CString(blobStorageType))
+	defer C.free(upBlobStorageType)
+	upConfig := unsafe.Pointer(C.CString(config))
+	defer C.free(upConfig)
+
+	channel := blobstorage.OpenBlobStorageReader(upBlobStorageType, upConfig)
 	result := <-channel
 	if result.Error != nil {
 		return -1, result.Error
@@ -27,7 +40,13 @@ func IndyOpenBlobStorageReader(blobStorageType string, config string) (blobHandl
 
 // IndyOpenBlobStorageWriter opens blob writer
 func IndyOpenBlobStorageWriter(blobStorageType string, config string) (blobHandle int, err error) {
-	channel := blobstorage.OpenBlobStorageWriter(blobStorageType, config)
+
+	upBlobStorageType := unsafe.Pointer(C.CString(blobStorageType))
+	defer C.free(upBlobStorageType)
+	upConfig := unsafe.Pointer(C.CString(config))
+	defer C.free(upConfig)
+
+	channel := blobstorage.OpenBlobStorageWriter(upBlobStorageType, upConfig)
 	result := <-channel
 	if result.Error != nil {
 		return -1, result.Error

@@ -12,13 +12,14 @@
 
 package indySDK
 
+import "C"
 import (
+	"github.com/joyride9999/IndySdkGoBindings/blobstorage"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Jeffail/gabs/v2"
-	"github.com/joyride9999/IndySdkGoBindings/blobstorage"
 	"io"
 	"math"
 	"math/big"
@@ -237,3 +238,13 @@ func EncodeValue(value interface{}) string {
 	return bigint
 }
 
+func GetOptionalValue(val string) *C.char {
+	var ret *C.char
+
+	if len(val) > 0 {
+		ret = C.CString(val)
+	} else {
+		ret = nil
+	}
+	return ret
+}

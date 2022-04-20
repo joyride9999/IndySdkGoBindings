@@ -39,8 +39,8 @@ extern void multiSignRequestCB(indy_handle_t, indy_error_t, char*);
 */
 import "C"
 import (
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 	"unsafe"
 )
 
@@ -59,7 +59,7 @@ func multiSignRequestCB(commandHandle C.indy_handle_t, indyError C.indy_error_t,
 }
 
 // MultiSignRequest    Multi signs request message.
-func MultiSignRequest(wh int, did string, request string) chan indyUtils.IndyResult {
+func MultiSignRequest(wh int, did, request unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -80,8 +80,8 @@ func MultiSignRequest(wh int, did string, request string) chan indyUtils.IndyRes
 	// Call to indy function
 	res := C.indy_multi_sign_request(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(did),
-		C.CString(request),
+		(*C.char)(did),
+		(*C.char)(request),
 		(C.cb_multiSignRequest)(unsafe.Pointer(C.multiSignRequestCB)))
 
 	if res != 0 {
@@ -108,7 +108,7 @@ func appendRequestEndorserCB(commandHandle C.indy_handle_t, indyError C.indy_err
 }
 
 // AppendRequestEndorser   Append Endorser to an existing request.
-func AppendRequestEndorser(request string, endorserDid string) chan indyUtils.IndyResult {
+func AppendRequestEndorser(request, endorserDid unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -134,8 +134,8 @@ func AppendRequestEndorser(request string, endorserDid string) chan indyUtils.In
 
 	// Call to indy function
 	res := C.indy_append_request_endorser(commandHandle,
-		C.CString(request),
-		C.CString(endorserDid),
+		(*C.char)(request),
+		(*C.char)(endorserDid),
 		(C.cb_appendRequestEndorser)(unsafe.Pointer(C.appendRequestEndorserCB)))
 
 	if res != 0 {
@@ -164,7 +164,7 @@ func parseGetResponseDeltaCB(commandHandle C.indy_handle_t, indyError C.indy_err
 }
 
 // ParseGetRevocRegResponse Parse a GET_REVOC_REG response to get Revocation Registry in the format compatible with Anoncreds API.
-func ParseGetRevocRegResponse(getRevRegResp string) chan indyUtils.IndyResult {
+func ParseGetRevocRegResponse(getRevRegResp unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -183,7 +183,7 @@ func ParseGetRevocRegResponse(getRevRegResp string) chan indyUtils.IndyResult {
 
 	// Call to indy function
 	res := C.indy_parse_get_revoc_reg_response(commandHandle,
-		C.CString(getRevRegResp),
+		(*C.char)(getRevRegResp),
 		(C.cb_parseGetResponseDelta)(unsafe.Pointer(C.parseGetResponseDeltaCB)))
 
 	if res != 0 {
@@ -196,7 +196,7 @@ func ParseGetRevocRegResponse(getRevRegResp string) chan indyUtils.IndyResult {
 }
 
 // ParseGetRevocRegDeltaResponse Parse a GET_REVOC_REG_DELTA response to get Revocation Registry Delta in the format compatible with Anoncreds API.
-func ParseGetRevocRegDeltaResponse(getRevRegDeltaResp string) chan indyUtils.IndyResult {
+func ParseGetRevocRegDeltaResponse(getRevRegDeltaResp unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -218,7 +218,7 @@ func ParseGetRevocRegDeltaResponse(getRevRegDeltaResp string) chan indyUtils.Ind
 
 	// Call to indy function
 	res := C.indy_parse_get_revoc_reg_delta_response(commandHandle,
-		C.CString(getRevRegDeltaResp),
+		(*C.char)(getRevRegDeltaResp),
 		(C.cb_parseGetResponseDelta)(unsafe.Pointer(C.parseGetResponseDeltaCB)))
 
 	if res != 0 {
@@ -246,7 +246,7 @@ func parseGetResponseCB(commandHandle C.indy_handle_t, indyError C.indy_error_t,
 }
 
 // ParseGetRevocRegDefResponse Parse a GET_REVOC_REG_DEF response to get Revocation Registry Definition in the format compatible with Anoncreds API.
-func ParseGetRevocRegDefResponse(getRevocRegDefResponse string) chan indyUtils.IndyResult {
+func ParseGetRevocRegDefResponse(getRevocRegDefResponse unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -273,7 +273,7 @@ func ParseGetRevocRegDefResponse(getRevocRegDefResponse string) chan indyUtils.I
 
 	// Call to indy function
 	res := C.indy_parse_get_revoc_reg_def_response(commandHandle,
-		C.CString(getRevocRegDefResponse),
+		(*C.char)(getRevocRegDefResponse),
 		(C.cb_parseGetResponse)(unsafe.Pointer(C.parseGetResponseCB)))
 
 	if res != 0 {
@@ -286,7 +286,7 @@ func ParseGetRevocRegDefResponse(getRevocRegDefResponse string) chan indyUtils.I
 }
 
 // ParseGetCredDefResponse Parse a GET_CRED_DEF response to get Credential Definition in the format compatible with Anoncreds API.
-func ParseGetCredDefResponse(getCredDefResp string) chan indyUtils.IndyResult {
+func ParseGetCredDefResponse(getCredDefResp unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -310,7 +310,7 @@ func ParseGetCredDefResponse(getCredDefResp string) chan indyUtils.IndyResult {
 
 	// Call to indy function
 	res := C.indy_parse_get_cred_def_response(commandHandle,
-		C.CString(getCredDefResp),
+		(*C.char)(getCredDefResp),
 		(C.cb_parseGetResponse)(unsafe.Pointer(C.parseGetResponseCB)))
 
 	if res != 0 {
@@ -323,7 +323,7 @@ func ParseGetCredDefResponse(getCredDefResp string) chan indyUtils.IndyResult {
 }
 
 // ParseGetSchemaResponse Parse a GET_SCHEMA response to get Schema in the format compatible with Anoncreds API.
-func ParseGetSchemaResponse(schemaResponse string) chan indyUtils.IndyResult {
+func ParseGetSchemaResponse(schemaResponse unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -343,7 +343,7 @@ func ParseGetSchemaResponse(schemaResponse string) chan indyUtils.IndyResult {
 
 	// Call to indy function
 	res := C.indy_parse_get_schema_response(commandHandle,
-		C.CString(schemaResponse),
+		(*C.char)(schemaResponse),
 		(C.cb_parseGetResponse)(unsafe.Pointer(C.parseGetResponseCB)))
 
 	if res != 0 {
@@ -370,7 +370,7 @@ func parseGetNymResponseCB(commandHandle C.indy_handle_t, indyError C.indy_error
 }
 
 // ParseGetNymResponse Parse a GET_NYM response to get NYM data.
-func ParseGetNymResponse(getNymResponse string) chan indyUtils.IndyResult {
+func ParseGetNymResponse(getNymResponse unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
@@ -391,11 +391,11 @@ func ParseGetNymResponse(getNymResponse string) chan indyUtils.IndyResult {
 	                               101 - ENDORSER - equal to TRUST_ANCHOR that will be removed soon
 	                               201 - NETWORK_MONITOR
 	   }
-	 */
+	*/
 
 	// Call to indy function
 	res := C.indy_parse_get_nym_response(commandHandle,
-		C.CString(getNymResponse),
+		(*C.char)(getNymResponse),
 		(C.cb_parseGetNymResponse)(unsafe.Pointer(C.parseGetNymResponseCB)))
 
 	if res != 0 {
@@ -406,6 +406,7 @@ func ParseGetNymResponse(getNymResponse string) chan indyUtils.IndyResult {
 
 	return future
 }
+
 //export buildRequestCB
 func buildRequestCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, request *C.char) {
 	if indyError == 0 {
@@ -423,19 +424,11 @@ func buildRequestCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, req
 // BuildGetRevocRegDeltaRequest       Builds a GET_REVOC_REG_DELTA request. Request to get the delta of the accumulated state of the Revocation Registry.
 //    The Delta is defined by from and to timestamp fields.
 //    If from is not specified, then the whole state till to will be returned.
-func BuildGetRevocRegDeltaRequest(submitterDid string, revocRegDefId string, from int64, to int64) chan indyUtils.IndyResult {
+func BuildGetRevocRegDeltaRequest(submitterDid, revocRegDefId unsafe.Pointer, from int64, to int64) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var did *C.char
-	if len(submitterDid) > 0 {
-		did = C.CString(submitterDid)
-	} else {
-		did = nil
-	}
-
 	/*
 	   Builds a GET_REVOC_REG_DELTA request. Request to get the delta of the accumulated state of the Revocation Registry.
 	    The Delta is defined by from and to timestamp fields.
@@ -450,8 +443,8 @@ func BuildGetRevocRegDeltaRequest(submitterDid string, revocRegDefId string, fro
 
 	// Call to indy function
 	res := C.indy_build_get_revoc_reg_delta_request(commandHandle,
-		did,
-		C.CString(revocRegDefId),
+		(*C.char)(submitterDid),
+		(*C.char)(revocRegDefId),
 		C.longlong(from),
 		C.longlong(to),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
@@ -468,7 +461,7 @@ func BuildGetRevocRegDeltaRequest(submitterDid string, revocRegDefId string, fro
 // BuildRevocRegEntryRequest     Builds a REVOC_REG_ENTRY request.  Request to add the RevocReg entry containing
 //    the new accumulator value and issued/revoked indices.
 //    This is just a delta of indices, not the whole list. So, it can be sent each time a new credential is issued/revoked.
-func BuildRevocRegEntryRequest(submitterDid string, revocRegDefId string, revDefType string, value string) chan indyUtils.IndyResult {
+func BuildRevocRegEntryRequest(submitterDid, revocRegDefId, revDefType, value unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -495,10 +488,10 @@ func BuildRevocRegEntryRequest(submitterDid string, revocRegDefId string, revDef
 
 	// Call to indy function
 	res := C.indy_build_revoc_reg_entry_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(revocRegDefId),
-		C.CString(revDefType),
-		C.CString(value),
+		(*C.char)(submitterDid),
+		(*C.char)(revocRegDefId),
+		(*C.char)(revDefType),
+		(*C.char)(value),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
@@ -512,7 +505,7 @@ func BuildRevocRegEntryRequest(submitterDid string, revocRegDefId string, revDef
 
 // BuildRevocRegDefRequest     Builds a REVOC_REG_DEF request. Request to add the definition of revocation registry
 //    to an exists credential definition.
-func BuildRevocRegDefRequest(submitterDid string, data string) chan indyUtils.IndyResult {
+func BuildRevocRegDefRequest(submitterDid, data unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -542,8 +535,8 @@ func BuildRevocRegDefRequest(submitterDid string, data string) chan indyUtils.In
 
 	// Call to indy function
 	res := C.indy_build_revoc_reg_def_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(data),
+		(*C.char)(submitterDid),
+		(*C.char)(data),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
@@ -557,18 +550,11 @@ func BuildRevocRegDefRequest(submitterDid string, data string) chan indyUtils.In
 
 // BuildGetRevocRegRequest       Builds a GET_REVOC_REG request. Request to get the accumulated state of the Revocation Registry
 //    by ID. The state is defined by the given timestamp.
-func BuildGetRevocRegRequest(submitterDid string, revRegDefId string, timeStamp int64) chan indyUtils.IndyResult {
+func BuildGetRevocRegRequest(submitterDid, revRegDefId unsafe.Pointer, timeStamp int64) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var did *C.char
-	if len(submitterDid) > 0 {
-		did = C.CString(submitterDid)
-	} else {
-		did = nil
-	}
 
 	/*
 		:param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
@@ -579,8 +565,8 @@ func BuildGetRevocRegRequest(submitterDid string, revRegDefId string, timeStamp 
 
 	// Call to indy function
 	res := C.indy_build_get_revoc_reg_request(commandHandle,
-		did,
-		C.CString(revRegDefId),
+		(*C.char)(submitterDid),
+		(*C.char)(revRegDefId),
 		C.longlong(timeStamp),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
@@ -595,19 +581,11 @@ func BuildGetRevocRegRequest(submitterDid string, revRegDefId string, timeStamp 
 
 // BuildGetRevocRegDefRequest    Builds a GET_REVOC_REG_DEF request. Request to get a revocation registry definition,
 //    that Issuer creates for a particular Credential Definition.
-func BuildGetRevocRegDefRequest(submitterDid string, revRegDefId string) chan indyUtils.IndyResult {
+func BuildGetRevocRegDefRequest(submitterDid, revRegDefId unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var did *C.char
-	if len(submitterDid) > 0 {
-		did = C.CString(submitterDid)
-	} else {
-		did = nil
-	}
-
 	/*
 		  	:param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
 			:param rev_reg_def_id: ID of Revocation Registry Definition in ledger.
@@ -617,8 +595,8 @@ func BuildGetRevocRegDefRequest(submitterDid string, revRegDefId string) chan in
 
 	// Call to indy function
 	res := C.indy_build_get_revoc_reg_def_request(commandHandle,
-		did,
-		C.CString(revRegDefId),
+		(*C.char)(submitterDid),
+		(*C.char)(revRegDefId),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
@@ -632,18 +610,11 @@ func BuildGetRevocRegDefRequest(submitterDid string, revRegDefId string) chan in
 
 // BuildGetCredDefRequest    Builds a GET_CRED_DEF request. Request to get a credential definition (in particular, public key),
 //   that Issuer creates for a particular Credential Schema.
-func BuildGetCredDefRequest(submitterDid string, credDefId string) chan indyUtils.IndyResult {
+func BuildGetCredDefRequest(submitterDid, credDefId unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var did *C.char
-	if len(submitterDid) > 0 {
-		did = C.CString(submitterDid)
-	} else {
-		did = nil
-	}
 
 	/*
 	   :param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
@@ -653,8 +624,8 @@ func BuildGetCredDefRequest(submitterDid string, credDefId string) chan indyUtil
 
 	// Call to indy function
 	res := C.indy_build_get_cred_def_request(commandHandle,
-		did,
-		C.CString(credDefId),
+		(*C.char)(submitterDid),
+		(*C.char)(credDefId),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
@@ -667,7 +638,7 @@ func BuildGetCredDefRequest(submitterDid string, credDefId string) chan indyUtil
 }
 
 // BuildSchemaRequest Builds a SCHEMA request. Request to add Credential's schema.
-func BuildSchemaRequest(submitterDid string, schema string) chan indyUtils.IndyResult {
+func BuildSchemaRequest(submitterDid, schema unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -689,8 +660,8 @@ func BuildSchemaRequest(submitterDid string, schema string) chan indyUtils.IndyR
 
 	// Call to indy function
 	res := C.indy_build_schema_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(schema),
+		(*C.char)(submitterDid),
+		(*C.char)(schema),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
@@ -703,14 +674,11 @@ func BuildSchemaRequest(submitterDid string, schema string) chan indyUtils.IndyR
 }
 
 // BuildGetSchemaRequest builds a request to get crendential's schema
-func BuildGetSchemaRequest(submitterDid string, schemaId string) chan indyUtils.IndyResult {
+func BuildGetSchemaRequest(submitterDid unsafe.Pointer, schemaId unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	// If we get empty value we send nil
-	var res C.indy_error_t
 
 	/*
 			:param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
@@ -719,17 +687,11 @@ func BuildGetSchemaRequest(submitterDid string, schemaId string) chan indyUtils.
 	*/
 
 	// Call to indy function
-	if len(submitterDid) != 0 {
-		res = C.indy_build_get_schema_request(commandHandle,
-			C.CString(submitterDid),
-			C.CString(schemaId),
-			(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
-	} else {
-		res = C.indy_build_get_schema_request(commandHandle,
-			nil,
-			C.CString(schemaId),
-			(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
-	}
+
+	res := C.indy_build_get_schema_request(commandHandle,
+		(*C.char)(submitterDid),
+		(*C.char)(schemaId),
+		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -742,7 +704,7 @@ func BuildGetSchemaRequest(submitterDid string, schemaId string) chan indyUtils.
 
 // 	BuildCredentialDefinitionRequest Builds an CRED_DEF request. Request to add a credential definition (in particular, public key),
 //  that Issuer creates for a particular Credential Schema.
-func BuildCredentialDefinitionRequest(submitterDid string, credDefJson string) chan indyUtils.IndyResult {
+func BuildCredentialDefinitionRequest(submitterDid, credDefJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -768,8 +730,8 @@ func BuildCredentialDefinitionRequest(submitterDid string, credDefJson string) c
 
 	// Call to indy function
 	res := C.indy_build_cred_def_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(credDefJson),
+		(*C.char)(submitterDid),
+		(*C.char)(credDefJson),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
@@ -782,25 +744,25 @@ func BuildCredentialDefinitionRequest(submitterDid string, credDefJson string) c
 }
 
 // BuildGetDdoRequest Builds a request to get a DDO.
-func BuildGetDdoRequest(submitterDid string, targetDid string) chan indyUtils.IndyResult {
+func BuildGetDdoRequest(submitterDid, targetDid unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
-		Builds a request to get a DDO.
+			Builds a request to get a DDO.
 
-	    :param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
-	    :param target_did: Id of Identity stored in secured Wallet.
+		    :param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
+		    :param target_did: Id of Identity stored in secured Wallet.
 
-	    :return: Request result as json.
-	 */
+		    :return: Request result as json.
+	*/
 
 	// Call to indy function
 	res := C.indy_build_get_ddo_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(targetDid),
+		(*C.char)(submitterDid),
+		(*C.char)(targetDid),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
@@ -813,14 +775,11 @@ func BuildGetDdoRequest(submitterDid string, targetDid string) chan indyUtils.In
 }
 
 // BuildNymRequest creates a request to make an DID public on the blockchain
-func BuildNymRequest(submitterDid string, targetDid string, verkey string, alias string, role string) chan indyUtils.IndyResult {
+func BuildNymRequest(submitterDid, targetDid, verkey, alias, role unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	// If we get empty value we send nil
-	var res C.indy_error_t
 
 	/*
 		Builds a NYM request.
@@ -841,23 +800,13 @@ func BuildNymRequest(submitterDid string, targetDid string, verkey string, alias
 		:return: Request result as json.*/
 
 	// Call to indy function
-	if len(alias) != 0 {
-		res = C.indy_build_nym_request(commandHandle,
-			C.CString(submitterDid),
-			C.CString(targetDid),
-			C.CString(verkey),
-			C.CString(alias),
-			C.CString(role),
-			(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
-	} else {
-		res = C.indy_build_nym_request(commandHandle,
-			C.CString(submitterDid),
-			C.CString(targetDid),
-			C.CString(verkey),
-			nil,
-			C.CString(role),
-			(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
-	}
+	res := C.indy_build_nym_request(commandHandle,
+		(*C.char)(submitterDid),
+		(*C.char)(targetDid),
+		(*C.char)(verkey),
+		(*C.char)(alias),
+		(*C.char)(role),
+		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -869,51 +818,31 @@ func BuildNymRequest(submitterDid string, targetDid string, verkey string, alias
 }
 
 // BuildAttribRequest Builds an ATTRIB request. Request to add attribute to a NYM record.
-func BuildAttribRequest(submitterDid string, targetDid string, hash string, raw string, enc string) chan indyUtils.IndyResult {
+func BuildAttribRequest(submitterDid, targetDid, hash, raw, enc unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
-	var hashData *C.char
-	if len(hash) > 0 {
-		hashData = C.CString(hash)
-	} else {
-		hashData = nil
-	}
-
-	var rawData *C.char
-	if len(raw) > 0 {
-		rawData = C.CString(raw)
-	} else {
-		rawData = nil
-	}
-
-	var encData *C.char
-	if len(enc) > 0 {
-		encData = C.CString(enc)
-	} else {
-		encData = nil
-	}
 	/*
-		Builds an ATTRIB request. Request to add attribute to a NYM record.
+			Builds an ATTRIB request. Request to add attribute to a NYM record.
 
-	    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
-	                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
-	    :param target_did: Target DID as base58-encoded string for 16 or 32 bit DID value.
-	    :param hash: (Optional) Hash of attribute data.
-	    :param raw: (Optional) Json, where key is attribute name and value is attribute value.
-	    :param enc: (Optional) Encrypted value attribute data.
-	    :return: Request result as json.
-	 */
+		    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
+		                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
+		    :param target_did: Target DID as base58-encoded string for 16 or 32 bit DID value.
+		    :param hash: (Optional) Hash of attribute data.
+		    :param raw: (Optional) Json, where key is attribute name and value is attribute value.
+		    :param enc: (Optional) Encrypted value attribute data.
+		    :return: Request result as json.
+	*/
 
 	// Call to indy function
 	res := C.indy_build_attrib_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(targetDid),
-		hashData,
-		rawData,
-		encData,
+		(*C.char)(submitterDid),
+		(*C.char)(targetDid),
+		(*C.char)(hash),
+		(*C.char)(raw),
+		(*C.char)(enc),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
@@ -926,57 +855,30 @@ func BuildAttribRequest(submitterDid string, targetDid string, hash string, raw 
 }
 
 // BuildGetAttribRequest Builds a GET_ATTRIB request. Request to get information about an Attribute for the specified DID.
-func BuildGetAttribRequest(submitterDid string, targetDid string, hash string, raw string, enc string) chan indyUtils.IndyResult {
+func BuildGetAttribRequest(submitterDid, targetDid, hash, raw, enc unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
-	var did *C.char
-	if len(submitterDid) > 0 {
-		did = C.CString(submitterDid)
-	} else {
-		did = nil
-	}
-
-	var hashData *C.char
-	if len(hash) > 0 {
-		hashData = C.CString(hash)
-	} else {
-		hashData = nil
-	}
-
-	var rawData *C.char
-	if len(raw) > 0 {
-		rawData = C.CString(raw)
-	} else {
-		rawData = nil
-	}
-
-	var encData *C.char
-	if len(enc) > 0 {
-		encData = C.CString(enc)
-	} else {
-		encData = nil
-	}
 	/*
-		Builds a GET_ATTRIB request. Request to get information about an Attribute for the specified DID.
+			Builds a GET_ATTRIB request. Request to get information about an Attribute for the specified DID.
 
-		:param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
-	    :param target_did: Target DID as base58-encoded string for 16 or 32 bit DID value.
-	    :param xhash: (Optional) Requested attribute name.
-	    :param raw: (Optional) Requested attribute hash.
-	    :param enc: (Optional) Requested attribute encrypted value.
-	    :return: Request result as json.
+			:param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
+		    :param target_did: Target DID as base58-encoded string for 16 or 32 bit DID value.
+		    :param xhash: (Optional) Requested attribute name.
+		    :param raw: (Optional) Requested attribute hash.
+		    :param enc: (Optional) Requested attribute encrypted value.
+		    :return: Request result as json.
 	*/
 
 	// Call to indy function
 	res := C.indy_build_get_attrib_request(commandHandle,
-		did,
-		C.CString(targetDid),
-		hashData,
-		rawData,
-		encData,
+		(*C.char)(submitterDid),
+		(*C.char)(targetDid),
+		(*C.char)(hash),
+		(*C.char)(raw),
+		(*C.char)(enc),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
@@ -989,30 +891,24 @@ func BuildGetAttribRequest(submitterDid string, targetDid string, hash string, r
 }
 
 // BuildGetNymRequest Builds a GET_NYM request. Request to get information about a DID (NYM).
-func BuildGetNymRequest(submitterDid string, targetDid string) chan indyUtils.IndyResult {
+func BuildGetNymRequest(submitterDid, targetDid unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
-	var did *C.char
-	if len(submitterDid) > 0 {
-		did = C.CString(submitterDid)
-	} else {
-		did = nil
-	}
 	/*
-		Builds a GET_NYM request. Request to get information about a DID (NYM).
+			Builds a GET_NYM request. Request to get information about a DID (NYM).
 
-	    :param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
-	    :param target_did: Target DID as base58-encoded string for 16 or 32 bit DID value.
-	    :return: Request result as json.
-	 */
+		    :param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
+		    :param target_did: Target DID as base58-encoded string for 16 or 32 bit DID value.
+		    :return: Request result as json.
+	*/
 
 	// Call to indy function
 	res := C.indy_build_get_nym_request(commandHandle,
-		did,
-		C.CString(targetDid),
+		(*C.char)(submitterDid),
+		(*C.char)(targetDid),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1024,36 +920,36 @@ func BuildGetNymRequest(submitterDid string, targetDid string) chan indyUtils.In
 }
 
 // BuildNodeRequest Builds a NODE request. Request to add a new node to the pool, or updates existing in the pool.
-func BuildNodeRequest(submitterDid string, targetDid string, data string) chan indyUtils.IndyResult {
+func BuildNodeRequest(submitterDid, targetDid, data unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 	/*
-		Builds a NODE request. Request to add a new node to the pool, or updates existing in the pool.
+			Builds a NODE request. Request to add a new node to the pool, or updates existing in the pool.
 
-	    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
-	                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
-	    :param target_did: Target Node's DID.  It differs from submitter_did field.
-	    :param data: Data associated with the Node:
-	      {
-	          alias: string - Node's alias
-	          blskey: string - (Optional) BLS multi-signature key as base58-encoded string.
-	          blskey_pop: string - (Optional) BLS key proof of possession as base58-encoded string.
-	          client_ip: string - (Optional) Node's client listener IP address.
-	          client_port: string - (Optional) Node's client listener port.
-	          node_ip: string - (Optional) The IP address other Nodes use to communicate with this Node.
-	          node_port: string - (Optional) The port other Nodes use to communicate with this Node.
-	          services: array<string> - (Optional) The service of the Node. VALIDATOR is the only supported one now.
-	      }
-	    :return: Request result as json.
-	 */
+		    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
+		                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
+		    :param target_did: Target Node's DID.  It differs from submitter_did field.
+		    :param data: Data associated with the Node:
+		      {
+		          alias: string - Node's alias
+		          blskey: string - (Optional) BLS multi-signature key as base58-encoded string.
+		          blskey_pop: string - (Optional) BLS key proof of possession as base58-encoded string.
+		          client_ip: string - (Optional) Node's client listener IP address.
+		          client_port: string - (Optional) Node's client listener port.
+		          node_ip: string - (Optional) The IP address other Nodes use to communicate with this Node.
+		          node_port: string - (Optional) The port other Nodes use to communicate with this Node.
+		          services: array<string> - (Optional) The service of the Node. VALIDATOR is the only supported one now.
+		      }
+		    :return: Request result as json.
+	*/
 
 	// Call to indy function
 	res := C.indy_build_node_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(targetDid),
-		C.CString(data),
+		(*C.char)(submitterDid),
+		(*C.char)(targetDid),
+		(*C.char)(data),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1065,22 +961,22 @@ func BuildNodeRequest(submitterDid string, targetDid string, data string) chan i
 }
 
 // BuildGetValidatorInfoRequest Builds a GET_VALIDATOR_INFO request.
-func BuildGetValidatorInfoRequest(submitterDid string) chan indyUtils.IndyResult {
+func BuildGetValidatorInfoRequest(submitterDid unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
-		Builds a GET_VALIDATOR_INFO request.
+			Builds a GET_VALIDATOR_INFO request.
 
-	    :param submitter_did: Id of Identity stored in secured Wallet.
-	    :return: Request result as json.
-	 */
+		    :param submitter_did: Id of Identity stored in secured Wallet.
+		    :return: Request result as json.
+	*/
 
 	// Call to indy function
 	res := C.indy_build_get_validator_info_request(commandHandle,
-		C.CString(submitterDid),
+		(*C.char)(submitterDid),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1092,41 +988,28 @@ func BuildGetValidatorInfoRequest(submitterDid string) chan indyUtils.IndyResult
 }
 
 // BuildGetTxnRequest Builds a GET_TXN request. Request to get any transaction by its seq_no.
-func BuildGetTxnRequest(submitterDid string, ledgerType string, seqNo int) chan indyUtils.IndyResult {
+func BuildGetTxnRequest(submitterDid, ledgerType unsafe.Pointer, seqNo int) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
-	var did, _type *C.char
-	if len(submitterDid) > 0 {
-		did = C.CString(submitterDid)
-	} else {
-		did = nil
-	}
-
-	if len(ledgerType) > 0 {
-		_type = C.CString(ledgerType)
-	} else {
-		_type = nil
-	}
-
 	/*
-		Builds a GET_TXN request. Request to get any transaction by its seq_no.
-	    :param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
-	    :param ledger_type: (Optional) type of the ledger the requested transaction belongs to:
-	        DOMAIN - used default,
-	        POOL,
-	        CONFIG
-	        any number
-	    :param seq_no: requested transaction sequence number as it's stored on Ledger.
-	    :return: Request result as json.
-	 */
+			Builds a GET_TXN request. Request to get any transaction by its seq_no.
+		    :param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
+		    :param ledger_type: (Optional) type of the ledger the requested transaction belongs to:
+		        DOMAIN - used default,
+		        POOL,
+		        CONFIG
+		        any number
+		    :param seq_no: requested transaction sequence number as it's stored on Ledger.
+		    :return: Request result as json.
+	*/
 
 	// Call to indy function
 	res := C.indy_build_get_txn_request(commandHandle,
-		did,
-		_type,
+		(*C.char)(submitterDid),
+		(*C.char)(ledgerType),
 		(C.indy_i32_t)(seqNo),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
@@ -1138,27 +1021,27 @@ func BuildGetTxnRequest(submitterDid string, ledgerType string, seqNo int) chan 
 }
 
 // BuildPoolConfigRequest Builds a POOL_CONFIG request. Request to change Pool's configuration.
-func BuildPoolConfigRequest(submitterDid string, writes bool, force bool) chan indyUtils.IndyResult {
+func BuildPoolConfigRequest(submitterDid unsafe.Pointer, writes bool, force bool) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
-		Builds a POOL_CONFIG request. Request to change Pool's configuration.
+			Builds a POOL_CONFIG request. Request to change Pool's configuration.
 
-	    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
-	                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
-	    :param writes: Whether any write requests can be processed by the pool
-	                   (if false, then pool goes to read-only state). True by default.
-	    :param force: Whether we should apply transaction (for example, move pool to read-only state)
-	                  without waiting for consensus of this transaction
-	    :return: Request result as json.
-	 */
+		    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
+		                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
+		    :param writes: Whether any write requests can be processed by the pool
+		                   (if false, then pool goes to read-only state). True by default.
+		    :param force: Whether we should apply transaction (for example, move pool to read-only state)
+		                  without waiting for consensus of this transaction
+		    :return: Request result as json.
+	*/
 
 	// Call to indy function
 	res := C.indy_build_pool_config_request(commandHandle,
-		C.CString(submitterDid),
+		(*C.char)(submitterDid),
 		(C.indy_bool_t)(writes),
 		(C.indy_bool_t)(force),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
@@ -1171,26 +1054,26 @@ func BuildPoolConfigRequest(submitterDid string, writes bool, force bool) chan i
 }
 
 // BuildPoolRestartRequest Builds a POOL_RESTART request.
-func BuildPoolRestartRequest(submitterDid string, action string, dateTime string) chan indyUtils.IndyResult {
+func BuildPoolRestartRequest(submitterDid, action, dateTime unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
-		Builds a POOL_RESTART request
-	    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
-	                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
-	    :param action       : Action that pool has to do after received transaction.
-	                          Can be "start" or "cancel"
-	    :param datetime     : Time when pool must be restarted.
+			Builds a POOL_RESTART request
+		    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
+		                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
+		    :param action       : Action that pool has to do after received transaction.
+		                          Can be "start" or "cancel"
+		    :param datetime     : Time when pool must be restarted.
 	*/
 
 	// Call to indy function
 	res := C.indy_build_pool_restart_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(action),
-		C.CString(dateTime),
+		(*C.char)(submitterDid),
+		(*C.char)(action),
+		(*C.char)(dateTime),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1201,8 +1084,8 @@ func BuildPoolRestartRequest(submitterDid string, action string, dateTime string
 }
 
 // BuildPoolUpgradeRequest Builds a POOL_UPGRADE request. Request to upgrade the Pool (sent by Trustee).
-func BuildPoolUpgradeRequest(submitterDid string, name string, version string, action string, sha256 string, timeOut int32, schedule string,
-	justification string, reinstall bool, force bool, package_ string) chan indyUtils.IndyResult {
+func BuildPoolUpgradeRequest(submitterDid, name, version, action, sha256 unsafe.Pointer, timeOut int32, schedule,
+	justification unsafe.Pointer, reinstall bool, force bool, package_ unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1215,61 +1098,40 @@ func BuildPoolUpgradeRequest(submitterDid string, name string, version string, a
 		indyTimeOut = 0
 	}
 
-	var indySchedule *C.char
-	if len(schedule) > 0 {
-		indySchedule = C.CString(schedule)
-	} else {
-		indySchedule = nil
-	}
-
-	var indyJustification *C.char
-	if len(justification) > 0 {
-		indyJustification = C.CString(justification)
-	} else {
-		indySchedule = nil
-	}
-
-	var indyPackage *C.char
-	if len(package_) > 0 {
-		indyPackage = C.CString(package_)
-	} else {
-		indyPackage = nil
-	}
-
 	/*
-			Builds a POOL_UPGRADE request. Request to upgrade the Pool (sent by Trustee).
-			It upgrades the specified Nodes (either all nodes in the Pool, or some specific ones).
+		Builds a POOL_UPGRADE request. Request to upgrade the Pool (sent by Trustee).
+		It upgrades the specified Nodes (either all nodes in the Pool, or some specific ones).
 
-			:param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
-								  Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
-			:param name: Human-readable name for the upgrade.
-			:param version: The version of indy-node package we perform upgrade to.
-							Must be greater than existing one (or equal if reinstall flag is True).
-			:param action: Either start or cancel.
-			:param _sha256: sha256 hash of the package.
-			:param _timeout: (Optional) Limits upgrade time on each Node.
-			:param schedule: (Optional) Schedule of when to perform upgrade on each node. Map Node DIDs to upgrade time.
-			:param justification: (Optional) justification string for this particular Upgrade.
-			:param reinstall: Whether it's allowed to re-install the same version. False by default.
-			:param force: Whether we should apply transaction (schedule Upgrade) without waiting
-						  for consensus of this transaction.
-			:param package: (Optional) Package to be upgraded.
-			:return: Request result as json.
+		:param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
+							  Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
+		:param name: Human-readable name for the upgrade.
+		:param version: The version of indy-node package we perform upgrade to.
+						Must be greater than existing one (or equal if reinstall flag is True).
+		:param action: Either start or cancel.
+		:param _sha256: sha256 hash of the package.
+		:param _timeout: (Optional) Limits upgrade time on each Node.
+		:param schedule: (Optional) Schedule of when to perform upgrade on each node. Map Node DIDs to upgrade time.
+		:param justification: (Optional) justification string for this particular Upgrade.
+		:param reinstall: Whether it's allowed to re-install the same version. False by default.
+		:param force: Whether we should apply transaction (schedule Upgrade) without waiting
+					  for consensus of this transaction.
+		:param package: (Optional) Package to be upgraded.
+		:return: Request result as json.
 	*/
 
 	// Call to indy function
 	res := C.indy_build_pool_upgrade_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(name),
-		C.CString(version),
-		C.CString(action),
-		C.CString(sha256),
+		(*C.char)(submitterDid),
+		(*C.char)(name),
+		(*C.char)(version),
+		(*C.char)(action),
+		(*C.char)(sha256),
 		indyTimeOut,
-		indySchedule,
-		indyJustification,
+		(*C.char)(schedule),
+		(*C.char)(justification),
 		(C.indy_bool_t)(reinstall),
 		(C.indy_bool_t)(force),
-		indyPackage,
+		(*C.char)(package_),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1280,25 +1142,11 @@ func BuildPoolUpgradeRequest(submitterDid string, name string, version string, a
 }
 
 // BuildAuthRuleRequest Builds a AUTH_RULE request.
-func BuildAuthRuleRequest(submitterDid string, txnType string, action string, field string, oldValue string, newValue string, constraint string) chan indyUtils.IndyResult {
+func BuildAuthRuleRequest(submitterDid, txnType, action, field, oldValue, newValue, constraint unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var indyOldValue *C.char
-	if len(oldValue) > 0 {
-		indyOldValue = C.CString(oldValue)
-	} else {
-		indyOldValue = nil
-	}
-
-	var indyNewValue *C.char
-	if len(newValue) > 0 {
-		indyNewValue = C.CString(newValue)
-	} else {
-		indyNewValue = nil
-	}
 
 	/*
 			Builds a AUTH_RULE request. Request to change authentication rules for a ledger transaction.
@@ -1333,13 +1181,13 @@ func BuildAuthRuleRequest(submitterDid string, txnType string, action string, fi
 
 	// Call to indy function
 	res := C.indy_build_auth_rule_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(txnType),
-		C.CString(action),
-		C.CString(field),
-		indyOldValue,
-		indyNewValue,
-		C.CString(constraint),
+		(*C.char)(submitterDid),
+		(*C.char)(txnType),
+		(*C.char)(action),
+		(*C.char)(field),
+		(*C.char)(oldValue),
+		(*C.char)(newValue),
+		(*C.char)(constraint),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1350,35 +1198,35 @@ func BuildAuthRuleRequest(submitterDid string, txnType string, action string, fi
 }
 
 // BuildAuthRulesRequest Builds a AUTH_RULES request.
-func BuildAuthRulesRequest(submitterDid string, data string) chan indyUtils.IndyResult {
+func BuildAuthRulesRequest(submitterDid, data unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
-		 Builds a AUTH_RULES request. Request to change multiple authentication rules for a ledger transaction.
-	    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
-	                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
-	    :param data: a list of auth rules: [
-	        {
-	            "auth_type": ledger transaction alias or associated value,
-	            "auth_action": type of an action,
-	            "field": transaction field,
-	            "old_value": (Optional) old value of a field, which can be changed to a new_value (mandatory for EDIT action),
-	            "new_value": (Optional) new value that can be used to fill the field,
-	            "constraint": set of constraints required for execution of an action in the format described above for `build_auth_rule_request` function.
-	        }
-	    ]
-	    Default ledger auth rules: https://github.com/hyperledger/indy-node/blob/master/docs/source/auth_rules.md
-	    More about AUTH_RULE request: https://github.com/hyperledger/indy-node/blob/master/docs/source/requests.md#auth_rules
-	    :return: Request result as json.
-	 */
+			 Builds a AUTH_RULES request. Request to change multiple authentication rules for a ledger transaction.
+		    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
+		                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
+		    :param data: a list of auth rules: [
+		        {
+		            "auth_type": ledger transaction alias or associated value,
+		            "auth_action": type of an action,
+		            "field": transaction field,
+		            "old_value": (Optional) old value of a field, which can be changed to a new_value (mandatory for EDIT action),
+		            "new_value": (Optional) new value that can be used to fill the field,
+		            "constraint": set of constraints required for execution of an action in the format described above for `build_auth_rule_request` function.
+		        }
+		    ]
+		    Default ledger auth rules: https://github.com/hyperledger/indy-node/blob/master/docs/source/auth_rules.md
+		    More about AUTH_RULE request: https://github.com/hyperledger/indy-node/blob/master/docs/source/requests.md#auth_rules
+		    :return: Request result as json.
+	*/
 
 	// Call to indy function
 	res := C.indy_build_auth_rules_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(data),
+		(*C.char)(submitterDid),
+		(*C.char)(data),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1389,77 +1237,35 @@ func BuildAuthRulesRequest(submitterDid string, data string) chan indyUtils.Indy
 }
 
 // BuildGetAuthRuleRequest Builds a GET_AUTH_RULE request. Request to get authentication rules for a ledger transaction.
-func BuildGetAuthRuleRequest(submitterDid string, txnType string, action string, field string, oldValue string, newValue string) chan indyUtils.IndyResult {
+func BuildGetAuthRuleRequest(submitterDid, txnType, action, field, oldValue, newValue unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
-	var did *C.char
-	if len(submitterDid) > 0 {
-		did = C.CString(submitterDid)
-	} else {
-		did = nil
-	}
-
-	var indyTxnType *C.char
-	if len(txnType) > 0 {
-		indyTxnType = C.CString(txnType)
-	} else {
-		indyTxnType = nil
-	}
-
-	var indyAction *C.char
-	if len(action) > 0 {
-		indyAction = C.CString(action)
-	} else {
-		indyAction = nil
-	}
-
-	var indyField *C.char
-	if len(field) > 0 {
-		indyField = C.CString(field)
-	} else {
-		indyField = nil
-	}
-
- 	var indyOldValue *C.char
-	if len(oldValue) > 0 {
-		indyOldValue = C.CString(oldValue)
-	} else {
-		indyOldValue = nil
-	}
-
-	var indyNewValue *C.char
-	if len(newValue) > 0 {
-		indyNewValue = C.CString(newValue)
-	} else {
-		indyNewValue = nil
-	}
-
 	/*
-			 Builds a GET_AUTH_RULE request. Request to get authentication rules for a ledger transaction.
-	   		 NOTE: Either none or all transaction related parameters must be specified (`old_value` can be skipped for `ADD` action).
-				* none - to get all authentication rules for all ledger transactions
-				* all - to get authentication rules for specific action (`old_value` can be skipped for `ADD` action)
+				 Builds a GET_AUTH_RULE request. Request to get authentication rules for a ledger transaction.
+		   		 NOTE: Either none or all transaction related parameters must be specified (`old_value` can be skipped for `ADD` action).
+					* none - to get all authentication rules for all ledger transactions
+					* all - to get authentication rules for specific action (`old_value` can be skipped for `ADD` action)
 
-			:param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
-			:param txn_type: (Optional) target ledger transaction alias or associated value.
-			:param action: (Optional) target action type. Can be either "ADD" or "EDIT".
-			:param field: (Optional) target transaction field.
-			:param old_value: (Optional) old value of field, which can be changed to a new_value (must be specified for EDIT action).
-			:param new_value: (Optional) new value that can be used to fill the field.
-			:return: Request result as json.
+				:param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
+				:param txn_type: (Optional) target ledger transaction alias or associated value.
+				:param action: (Optional) target action type. Can be either "ADD" or "EDIT".
+				:param field: (Optional) target transaction field.
+				:param old_value: (Optional) old value of field, which can be changed to a new_value (must be specified for EDIT action).
+				:param new_value: (Optional) new value that can be used to fill the field.
+				:return: Request result as json.
 	*/
 
 	// Call to indy function
 	res := C.indy_build_get_auth_rule_request(commandHandle,
-		did,
-		indyTxnType,
-		indyAction,
-		indyField,
-		indyOldValue,
-		indyNewValue,
+		(*C.char)(submitterDid),
+		(*C.char)(txnType),
+		(*C.char)(action),
+		(*C.char)(field),
+		(*C.char)(oldValue),
+		(*C.char)(newValue),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1470,18 +1276,11 @@ func BuildGetAuthRuleRequest(submitterDid string, txnType string, action string,
 }
 
 // BuildTxnAuthorAgreementRequest Builds a TXN_AUTHR_AGRMT request. Request to add a new version of Transaction Author Agreement to the ledger.
-func BuildTxnAuthorAgreementRequest(submitterDid string, text string, version string, ratificationTs int64, retirementTs int64) chan indyUtils.IndyResult {
+func BuildTxnAuthorAgreementRequest(submitterDid, text, version unsafe.Pointer, ratificationTs int64, retirementTs int64) chan indyUtils.IndyResult {
 
 	// Prepare the call parameter.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var indyText *C.char
-	if len(text) > 0 {
-		indyText = C.CString(text)
-	} else {
-		indyText = nil
-	}
 
 	var indyRatificationTs C.longlong
 	if ratificationTs > 0 {
@@ -1498,39 +1297,39 @@ func BuildTxnAuthorAgreementRequest(submitterDid string, text string, version st
 	}
 
 	/*
-		Builds a TXN_AUTHR_AGRMT request. Request to add a new version of Transaction Author Agreement to the ledger.
-	    EXPERIMENTAL
+			Builds a TXN_AUTHR_AGRMT request. Request to add a new version of Transaction Author Agreement to the ledger.
+		    EXPERIMENTAL
 
-	    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
-	                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
-	    :param text: (Optional) a content of the TTA.
-	                          Mandatory in case of adding a new TAA. An existing TAA text can not be changed.
-	                          for Indy Node version <= 1.12.0:
-	                              Use empty string to reset TAA on the ledger
-	                          for Indy Node version > 1.12.0
-	                              Should be omitted in case of updating an existing TAA (setting `retirement_ts`)
-	    :param version: a version of the TTA (unique UTF-8 string).
-	    :param ratification_ts: (Optional) the date (timestamp) of TAA ratification by network government.
-	                          for Indy Node version <= 1.12.0:
-	                             Must be omitted
-	                          for Indy Node version > 1.12.0:
-	                             Must be specified in case of adding a new TAA
-	                             Can be omitted in case of updating an existing TAA
-	    :param retirement_ts: (Optional) the date (timestamp) of TAA retirement.
-	                          for Indy Node version <= 1.12.0:
-	                              Must be omitted
-	                          for Indy Node version > 1.12.0:
-	                              Must be omitted in case of adding a new (latest) TAA.
-	                              Should be used for updating (deactivating) non-latest TAA on the ledger.
-	    Note: Use `build_disable_all_txn_author_agreements_request` to disable all TAA's on the ledger.
-	    :return: Request result as json.
-	 */
+		    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
+		                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
+		    :param text: (Optional) a content of the TTA.
+		                          Mandatory in case of adding a new TAA. An existing TAA text can not be changed.
+		                          for Indy Node version <= 1.12.0:
+		                              Use empty string to reset TAA on the ledger
+		                          for Indy Node version > 1.12.0
+		                              Should be omitted in case of updating an existing TAA (setting `retirement_ts`)
+		    :param version: a version of the TTA (unique UTF-8 string).
+		    :param ratification_ts: (Optional) the date (timestamp) of TAA ratification by network government.
+		                          for Indy Node version <= 1.12.0:
+		                             Must be omitted
+		                          for Indy Node version > 1.12.0:
+		                             Must be specified in case of adding a new TAA
+		                             Can be omitted in case of updating an existing TAA
+		    :param retirement_ts: (Optional) the date (timestamp) of TAA retirement.
+		                          for Indy Node version <= 1.12.0:
+		                              Must be omitted
+		                          for Indy Node version > 1.12.0:
+		                              Must be omitted in case of adding a new (latest) TAA.
+		                              Should be used for updating (deactivating) non-latest TAA on the ledger.
+		    Note: Use `build_disable_all_txn_author_agreements_request` to disable all TAA's on the ledger.
+		    :return: Request result as json.
+	*/
 
 	// Call to indy function
 	res := C.indy_build_txn_author_agreement_request(commandHandle,
-		C.CString(submitterDid),
-		indyText,
-		C.CString(version),
+		(*C.char)(submitterDid),
+		(*C.char)(text),
+		(*C.char)(version),
 		indyRatificationTs,
 		indyRetirementTs,
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
@@ -1543,24 +1342,24 @@ func BuildTxnAuthorAgreementRequest(submitterDid string, text string, version st
 }
 
 // BuildDisableAllTxnAuthorAgreementsRequest Builds a DISABLE_ALL_TXN_AUTHR_AGRMTS request. Request to disable all Transaction Author Agreement on the ledger.
-func BuildDisableAllTxnAuthorAgreementsRequest(submitterDid string) chan indyUtils.IndyResult {
+func BuildDisableAllTxnAuthorAgreementsRequest(submitterDid unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 
 	/*
-		Builds a DISABLE_ALL_TXN_AUTHR_AGRMTS request. Request to disable all Transaction Author Agreement on the ledger.
-	    EXPERIMENTAL
+			Builds a DISABLE_ALL_TXN_AUTHR_AGRMTS request. Request to disable all Transaction Author Agreement on the ledger.
+		    EXPERIMENTAL
 
-	    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
-	                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
-	    :return: Request result as json.
-	 */
+		    :param submitter_did: Identifier (DID) of the transaction author as base58-encoded string.
+		                          Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
+		    :return: Request result as json.
+	*/
 
 	// Call to indy function.
 	res := C.indy_build_disable_all_txn_author_agreements_request(commandHandle,
-		C.CString(submitterDid),
+		(*C.char)(submitterDid),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1571,25 +1370,11 @@ func BuildDisableAllTxnAuthorAgreementsRequest(submitterDid string) chan indyUti
 }
 
 // BuildGetTxnAuthorAgreementRequest  Builds a GET_TXN_AUTHR_AGRMT request. Request to get a specific Transaction Author Agreement from the ledger.
-func BuildGetTxnAuthorAgreementRequest(submitterDid string, data string) chan indyUtils.IndyResult {
+func BuildGetTxnAuthorAgreementRequest(submitterDid, data unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var did *C.char
-	if len(submitterDid) > 0 {
-		did = C.CString(submitterDid)
-	} else {
-		did = nil
-	}
-
-	var indyData *C.char
-	if len(data) > 0 {
-		indyData = C.CString(data)
-	} else {
-		indyData = nil
-	}
 
 	/*
 	   Builds a GET_TXN_AUTHR_AGRMT request. Request to get a specific Transaction Author Agreement from the ledger.
@@ -1606,12 +1391,12 @@ func BuildGetTxnAuthorAgreementRequest(submitterDid string, data string) chan in
 	    Null data or empty JSON are acceptable here. In this case, ledger will return the latest version of TAA.
 
 	   :return: Request result as json.
-	 */
+	*/
 
 	// Call to indy function.
 	res := C.indy_build_get_txn_author_agreement_request(commandHandle,
-		did,
-		indyData,
+		(*C.char)(submitterDid),
+		(*C.char)(data),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1622,18 +1407,11 @@ func BuildGetTxnAuthorAgreementRequest(submitterDid string, data string) chan in
 }
 
 // BuildAcceptanceMechanismsRequest Builds a SET_TXN_AUTHR_AGRMT_AML request. Request to add a new list of acceptance mechanisms for transaction author agreement.
-func BuildAcceptanceMechanismsRequest(submitterDid string, aml string, version string, amlContext string) chan indyUtils.IndyResult {
+func BuildAcceptanceMechanismsRequest(submitterDid, aml, version, amlContext unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var indyAmlContext *C.char
-	if len(amlContext) > 0 {
-		indyAmlContext = C.CString(amlContext)
-	} else {
-		indyAmlContext = nil
-	}
 
 	/*
 	 	Builds a SET_TXN_AUTHR_AGRMT_AML request. Request to add a new list of acceptance mechanisms for transaction author agreement.
@@ -1651,14 +1429,14 @@ func BuildAcceptanceMechanismsRequest(submitterDid string, aml string, version s
 	    :param version: a version of new acceptance mechanisms. (Note: unique on the Ledger)
 	    :param aml_context: (Optional) common context information about acceptance mechanisms (may be a URL to external resource).
 	    :return: Request result as json.
-	 */
+	*/
 
 	// Call to indy function.
 	res := C.indy_build_acceptance_mechanisms_request(commandHandle,
-		C.CString(submitterDid),
-		C.CString(aml),
-		C.CString(version),
-		indyAmlContext,
+		(*C.char)(submitterDid),
+		(*C.char)(aml),
+		(*C.char)(version),
+		(*C.char)(amlContext),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1669,25 +1447,11 @@ func BuildAcceptanceMechanismsRequest(submitterDid string, aml string, version s
 }
 
 // BuildGetAcceptanceMechanismsRequest Builds a GET_TXN_AUTHR_AGRMT_AML request.
-func BuildGetAcceptanceMechanismsRequest(submitterDid string, timestamp int64, version string) chan indyUtils.IndyResult {
+func BuildGetAcceptanceMechanismsRequest(submitterDid unsafe.Pointer, timestamp int64, version unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var did *C.char
-	if len(submitterDid) > 0 {
-		did = C.CString(submitterDid)
-	} else {
-		did = nil
-	}
-
-	var indyVersion *C.char
-	if len(version) > 0 {
-		indyVersion = C.CString(version)
-	} else {
-		indyVersion = nil
-	}
 
 	/*
 	   Builds a GET_TXN_AUTHR_AGRMT_AML request. Request to get a list of  acceptance mechanisms from the ledger
@@ -1700,13 +1464,13 @@ func BuildGetAcceptanceMechanismsRequest(submitterDid string, timestamp int64, v
 
 	   NOTE: timestamp and version cannot be specified together.
 	   :return: Request result as json.
-	 */
+	*/
 
 	// Call to indy function.
 	res := C.indy_build_get_acceptance_mechanisms_request(commandHandle,
-		did,
+		(*C.char)(submitterDid),
 		C.longlong(timestamp),
-		indyVersion,
+		(*C.char)(version),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -1731,7 +1495,7 @@ func signAndSubmitRequestCB(commandHandle C.indy_handle_t, indyError C.indy_erro
 }
 
 // SignAndSubmitRequest sends a request to the blockchain
-func SignAndSubmitRequest(poolHandle int, walletHandle int, submitterDid string, requestJson string) chan indyUtils.IndyResult {
+func SignAndSubmitRequest(poolHandle int, walletHandle int, submitterDid, requestJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1755,8 +1519,8 @@ func SignAndSubmitRequest(poolHandle int, walletHandle int, submitterDid string,
 	res := C.indy_sign_and_submit_request(commandHandle,
 		(C.indy_handle_t)(poolHandle),
 		(C.indy_handle_t)(walletHandle),
-		C.CString(submitterDid),
-		C.CString(requestJson),
+		(*C.char)(submitterDid),
+		(*C.char)(requestJson),
 		(C.cb_signAndSubmitRequest)(unsafe.Pointer(C.signAndSubmitRequestCB)))
 
 	if res != 0 {
@@ -1770,7 +1534,7 @@ func SignAndSubmitRequest(poolHandle int, walletHandle int, submitterDid string,
 
 // SubmitRequest Publishes request message to validator pool (no signing, unlike sign_and_submit_request).
 // The request is sent to the validator pool as is. It's assumed that it's already prepared.
-func SubmitRequest(poolHandle int, requestJson string) chan indyUtils.IndyResult {
+func SubmitRequest(poolHandle int, requestJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1785,7 +1549,7 @@ func SubmitRequest(poolHandle int, requestJson string) chan indyUtils.IndyResult
 	// Call to indy function
 	res := C.indy_submit_request(commandHandle,
 		(C.indy_handle_t)(poolHandle),
-		C.CString(requestJson),
+		(*C.char)(requestJson),
 		(C.cb_signAndSubmitRequest)(unsafe.Pointer(C.signAndSubmitRequestCB)))
 
 	if res != 0 {
@@ -1798,7 +1562,7 @@ func SubmitRequest(poolHandle int, requestJson string) chan indyUtils.IndyResult
 }
 
 // SignRequest Signs request message. Adds submitter information to passed request json, signs it with submitter sign key
-func SignRequest(walletHandle int, submitterDid string, requestJson string) chan indyUtils.IndyResult {
+func SignRequest(walletHandle int, submitterDid, requestJson unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
@@ -1818,8 +1582,8 @@ func SignRequest(walletHandle int, submitterDid string, requestJson string) chan
 	// Call C.indy_sign_request
 	res := C.indy_sign_request(commandHandle,
 		(C.indy_handle_t)(walletHandle),
-		C.CString(submitterDid),
-		C.CString(requestJson),
+		(*C.char)(submitterDid),
+		(*C.char)(requestJson),
 		(C.cb_signAndSubmitRequest)(unsafe.Pointer(C.signAndSubmitRequestCB)))
 
 	if res != 0 {
@@ -1832,40 +1596,40 @@ func SignRequest(walletHandle int, submitterDid string, requestJson string) chan
 }
 
 // GetResponseMetadata Parse transaction response to fetch metadata.
-func GetResponseMetadata(response string) chan indyUtils.IndyResult {
+func GetResponseMetadata(response unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
 	/*
-		 Parse transaction response to fetch metadata.
-	     The important use case for this method is validation of Node's response freshens.
-	     Distributed Ledgers can reply with outdated information for consequence read request after write.
+			 Parse transaction response to fetch metadata.
+		     The important use case for this method is validation of Node's response freshens.
+		     Distributed Ledgers can reply with outdated information for consequence read request after write.
 
-	     To reduce pool load libindy sends read requests to one random node in the pool.
-	     Consensus validation is performed based on validation of nodes multi signature for current ledger Merkle Trie root.
-	     This multi signature contains information about the latest ldeger's transaction ordering time and sequence number that this method returns.
-	     If node that returned response for some reason is out of consensus and has outdated ledger
-	     it can be caught by analysis of the returned latest ledger's transaction ordering time and sequence number.
+		     To reduce pool load libindy sends read requests to one random node in the pool.
+		     Consensus validation is performed based on validation of nodes multi signature for current ledger Merkle Trie root.
+		     This multi signature contains information about the latest ldeger's transaction ordering time and sequence number that this method returns.
+		     If node that returned response for some reason is out of consensus and has outdated ledger
+		     it can be caught by analysis of the returned latest ledger's transaction ordering time and sequence number.
 
-	     There are two ways to filter outdated responses:
-	         1) based on "seqNo" - sender knows the sequence number of transaction that he consider as a fresh enough.
-	         2) based on "txnTime" - sender knows the timestamp that he consider as a fresh enough.
+		     There are two ways to filter outdated responses:
+		         1) based on "seqNo" - sender knows the sequence number of transaction that he consider as a fresh enough.
+		         2) based on "txnTime" - sender knows the timestamp that he consider as a fresh enough.
 
-	     Note: response of GET_VALIDATOR_INFO request isn't supported
-	    :param response: response of write or get request.
-	    :return: Response Metadata.
-	    {
-	        "seqNo": Option<u64> - transaction sequence number,
-	        "txnTime": Option<u64> - transaction ordering time,
-	        "lastSeqNo": Option<u64> - the latest transaction seqNo for particular Node,
-	        "lastTxnTime": Option<u64> - the latest transaction ordering time for particular Node
-	    }
-	 */
+		     Note: response of GET_VALIDATOR_INFO request isn't supported
+		    :param response: response of write or get request.
+		    :return: Response Metadata.
+		    {
+		        "seqNo": Option<u64> - transaction sequence number,
+		        "txnTime": Option<u64> - transaction ordering time,
+		        "lastSeqNo": Option<u64> - the latest transaction seqNo for particular Node,
+		        "lastTxnTime": Option<u64> - the latest transaction ordering time for particular Node
+		    }
+	*/
 
 	// Call to indy function
 	res := C.indy_get_response_metadata(commandHandle,
-		C.CString(response),
+		(*C.char)(response),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
 	if res != 0 {
@@ -1878,32 +1642,11 @@ func GetResponseMetadata(response string) chan indyUtils.IndyResult {
 }
 
 // AppendTxnAuthorAgreementAcceptanceToRequest Append transaction author agreement acceptance data to a request.
-func AppendTxnAuthorAgreementAcceptanceToRequest(requestJson string, text string, version string, taaDigest string, mechanism string, time int64) chan indyUtils.IndyResult {
+func AppendTxnAuthorAgreementAcceptanceToRequest(requestJson, text, version, taaDigest, mechanism unsafe.Pointer, time int64) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters.
 	handle, future := indyUtils.NewFutureCommand()
 	commandHandle := (C.indy_handle_t)(handle)
-
-	var indyText *C.char
-	if len(text) > 0 {
-		indyText = C.CString(text)
-	} else {
-		indyText = nil
-	}
-
-	var indyVersion *C.char
-	if len(version) > 0 {
-		indyVersion = C.CString(version)
-	} else {
-		indyVersion = nil
-	}
-
-	var indyTaaDigest *C.char
-	if len(taaDigest) > 0 {
-		indyTaaDigest = C.CString(taaDigest)
-	} else {
-		indyTaaDigest = nil
-	}
 
 	/*
 	   Append transaction author agreement acceptance data to a request.
@@ -1924,15 +1667,15 @@ func AppendTxnAuthorAgreementAcceptanceToRequest(requestJson string, text string
 	   :param time: UTC timestamp when user has accepted the TAA. Note that the time portion will be discarded to avoid a privacy risk.
 
 	   :return: Updated request result as json.
-	 */
+	*/
 
 	// Call to indy function
 	res := C.indy_append_txn_author_agreement_acceptance_to_request(commandHandle,
-		C.CString(requestJson),
-		indyText,
-		indyVersion,
-		indyTaaDigest,
-		C.CString(mechanism),
+		(*C.char)(requestJson),
+		(*C.char)(text),
+		(*C.char)(version),
+		(*C.char)(taaDigest),
+		(*C.char)(mechanism),
 		C.ulonglong(time),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 

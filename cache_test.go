@@ -12,8 +12,8 @@
 package indySDK
 
 import (
-	"fmt"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"fmt"
 	"testing"
 )
 

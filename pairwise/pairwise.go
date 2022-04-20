@@ -32,8 +32,8 @@ extern void setPairwiseCB(indy_handle_t, indy_error_t);
 */
 import "C"
 import (
-	"errors"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"errors"
 	"unsafe"
 )
 
@@ -48,7 +48,7 @@ func isPairwiseExistsCB(commandHandle C.indy_handle_t, indyError C.indy_error_t,
 }
 
 // IsPairwiseExists Check if pairwise is exists
-func IsPairwiseExists(wh int, theirDID string) chan indyUtils.IndyResult {
+func IsPairwiseExists(wh int, theirDID unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 
 	commandHandle := (C.indy_handle_t)(handle)
@@ -65,7 +65,7 @@ func IsPairwiseExists(wh int, theirDID string) chan indyUtils.IndyResult {
 	// Call indy_is_pairwise_exists
 	res := C.indy_is_pairwise_exists(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(theirDID),
+		(*C.char)(theirDID),
 		(C.cb_isPairwiseExists)(unsafe.Pointer(C.isPairwiseExistsCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -87,7 +87,7 @@ func createPairwiseCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) {
 }
 
 // CreatePairwise creates pairwise
-func CreatePairwise(wh int, theirDID string, myDID string, meta string) chan indyUtils.IndyResult {
+func CreatePairwise(wh int, theirDID, myDID, meta unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 
 	commandHandle := (C.indy_handle_t)(handle)
@@ -106,9 +106,9 @@ func CreatePairwise(wh int, theirDID string, myDID string, meta string) chan ind
 	// Call indy_create_pairwise
 	res := C.indy_create_pairwise(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(theirDID),
-		C.CString(myDID),
-		C.CString(meta),
+		(*C.char)(theirDID),
+		(*C.char)(myDID),
+		(*C.char)(meta),
 		(C.cb_createPairwise)(unsafe.Pointer(C.createPairwiseCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -167,7 +167,7 @@ func getPairwiseCB(commandHandle C.indy_handle_t, indyError C.indy_error_t, pair
 }
 
 // GetPairwise gets pairwise information for specific their_did
-func GetPairwise(wh int, theirDID string) chan indyUtils.IndyResult {
+func GetPairwise(wh int, theirDID unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 
 	commandHandle := (C.indy_handle_t)(handle)
@@ -184,7 +184,7 @@ func GetPairwise(wh int, theirDID string) chan indyUtils.IndyResult {
 	// Call indy_get_pairwise
 	res := C.indy_get_pairwise(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(theirDID),
+		(*C.char)(theirDID),
 		(C.cb_getPairwise)(unsafe.Pointer(C.getPairwiseCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))
@@ -206,7 +206,7 @@ func setPairwiseCB(commandHandle C.indy_handle_t, indyError C.indy_error_t) {
 }
 
 // SetPairwiseMetadata save some data in the Wallet for pairwise associated with Did
-func SetPairwiseMetadata(wh int, theirDID string, meta string) chan indyUtils.IndyResult {
+func SetPairwiseMetadata(wh int, theirDID, meta unsafe.Pointer) chan indyUtils.IndyResult {
 	handle, future := indyUtils.NewFutureCommand()
 
 	commandHandle := (C.indy_handle_t)(handle)
@@ -224,8 +224,8 @@ func SetPairwiseMetadata(wh int, theirDID string, meta string) chan indyUtils.In
 	// Call indy_set_pairwise_metadata
 	res := C.indy_set_pairwise_metadata(commandHandle,
 		(C.indy_handle_t)(wh),
-		C.CString(theirDID),
-		C.CString(meta),
+		(*C.char)(theirDID),
+		(*C.char)(meta),
 		(C.cb_setPairwise)(unsafe.Pointer(C.setPairwiseCB)))
 	if res != 0 {
 		errMsg := indyUtils.GetIndyError(int(res))

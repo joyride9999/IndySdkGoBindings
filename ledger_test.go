@@ -12,11 +12,11 @@
 package indySDK
 
 import (
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"encoding/json"
 	"fmt"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/stretchr/testify/assert"
-	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"strconv"
 	"testing"
 )

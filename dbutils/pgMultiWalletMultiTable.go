@@ -11,7 +11,15 @@
 
 package dbutils
 
+/*
+#cgo CFLAGS: -I ../include
+#include <indy_core.h>
+#include <stdlib.h>
+*/
+import "C"
 import (
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
+	"github.com/joyride9999/IndySdkGoBindings/wallet"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -22,10 +30,9 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
-	"github.com/joyride9999/IndySdkGoBindings/wallet"
 	"regexp"
 	"strconv"
+	"unsafe"
 )
 
 func checkSchemaName(schema string) bool {
@@ -60,6 +67,10 @@ func NewPgMultiSchemaStorage() *pgMultiSchemaStorage {
 	storage.HandlesToDb = cmap.New()
 	storage.WalletIdsToDb = cmap.New()
 	storage.SearchHandles = cmap.New()
+	storage.SearchHandlesName = cmap.New()
+	storage.SearchHandlesValue = cmap.New()
+	storage.SearchHandlesType = cmap.New()
+	storage.SearchHandlesTags = cmap.New()
 	storage.SearchHandlesIterator = cmap.New()
 	return storage
 }
@@ -72,6 +83,10 @@ type pgMultiSchemaStorage struct {
 	WalletIdsToDb         cmap.ConcurrentMap //wallet id to db connection (string to *gorm.db)
 	HandlesToDb           cmap.ConcurrentMap //storage handles to db connection(int to *gorm.db)
 	SearchHandles         cmap.ConcurrentMap
+	SearchHandlesName     cmap.ConcurrentMap
+	SearchHandlesValue    cmap.ConcurrentMap
+	SearchHandlesType     cmap.ConcurrentMap
+	SearchHandlesTags     cmap.ConcurrentMap
 	SearchHandlesIterator cmap.ConcurrentMap
 	SearchHandleCounter   indyUtils.Counter
 }
@@ -262,14 +277,15 @@ func (e *pgMultiSchemaStorage) Open(walletId string, storageConfig string, crede
 		return 0, 210, tx.Error //WalletStorageError: Storage error occurred during wallet operation
 	}
 	if nCount != 1 {
-		return 0, 200, errors.New("wallet id doesnt exist") //"WalletInvalidHandle: Caller passed invalid wallet handle"
+		return 0, 210, errors.New("Storage error occurred during wallet operation") //WalletStorageError: Storage error occurred during wallet operation
 	}
 
 	nextStorageHandle, handleKey := e.StorageHandlesCounter.Get()
 	e.StorageHandles.Set(handleKey, walletId)
 	e.WalletIdsToDb.Set(walletId, db)
 	e.HandlesToDb.Set(handleKey, db)
-	e.MetadataHandles.Set(handleKey, metadata)
+
+	e.MetadataHandles.Set(handleKey, C.CString(metadata.Value))
 
 	return int(nextStorageHandle), 0, nil
 }
@@ -340,6 +356,19 @@ func (e *pgMultiSchemaStorage) Delete(walletID string, storageConfig string, cre
 	if dTP != nil {
 		tx.Rollback()
 		return 210, dTP // WalletStorageError: Storage error occurred during wallet operation
+	}
+
+	if !checkSchemaName(walletID) {
+		tx.Rollback()
+		return 210, dTP // WalletStorageError: Storage error occurred during wallet operation
+	}
+
+	sql := fmt.Sprintf("DROP SCHEMA IF EXISTS \"%s\" CASCADE", walletID)
+
+	dTd := tx.Exec(sql).Error
+	if dTd != nil {
+		tx.Rollback()
+		return 210, dTd // WalletStorageError: Storage error occurred during wallet operation
 	}
 
 	if tx.Commit().Error != nil {
@@ -771,75 +800,82 @@ func (e *pgMultiSchemaStorage) GetRecordHandle(storageHandle int, recordType str
 
 	sh, shKey := e.SearchHandleCounter.Get()
 	e.SearchHandles.Set(shKey, item)
+	e.SearchHandlesName.Set(shKey, C.CString(item.Name))
+	e.SearchHandlesValue.Set(shKey, wallet.RecordValue{
+		Len:   len(item.Value),
+		Value: C.CBytes(item.Value),
+	})
+	e.SearchHandlesType.Set(shKey, C.CString(item.Type))
 
 	return int(sh), 0, nil
 }
 
 //GetRecordId - get record id (item.name) ... not to be confused with row id( item.id)
-func (e *pgMultiSchemaStorage) GetRecordId(storageHandle int, recordHandle int) (string, int, error) {
+func (e *pgMultiSchemaStorage) GetRecordId(storageHandle int, recordHandle int) (unsafe.Pointer, int, error) {
 
 	searchHandleKey := strconv.Itoa(recordHandle)
-	tmp, ok := e.SearchHandles.Get(searchHandleKey)
+	tmp, ok := e.SearchHandlesName.Get(searchHandleKey)
 	if !ok {
-		return "", 200, errors.New("WalletInvalidHandle: Caller passed invalid wallet handle")
+		return nil, 200, errors.New("WalletInvalidHandle: Caller passed invalid wallet handle")
 	}
 
-	item, okCast := tmp.(ItemsDB)
+	item, okCast := tmp.(*C.char)
 	if !okCast {
-		return "", 208, errors.New(indyUtils.GetIndyError(208)) //WalletInputError: Input provided to wallet operations is considered not valid
+		return nil, 208, errors.New(indyUtils.GetIndyError(208)) //WalletInputError: Input provided to wallet operations is considered not valid
 	}
 
-	return item.Name, 0, nil
+	return unsafe.Pointer(item), 0, nil
 }
 
 //GetRecordType - get record type
-func (e *pgMultiSchemaStorage) GetRecordType(storageHandle int, recordHandle int) (string, int, error) {
+func (e *pgMultiSchemaStorage) GetRecordType(storageHandle int, recordHandle int) (unsafe.Pointer, int, error) {
 
 	searchHandleKey := strconv.Itoa(recordHandle)
-	tmp, ok := e.SearchHandles.Get(searchHandleKey)
+	tmp, ok := e.SearchHandlesType.Get(searchHandleKey)
 	if !ok {
-		return "", 200, errors.New("WalletInvalidHandle: Caller passed invalid wallet handle")
+		return nil, 200, errors.New("WalletInvalidHandle: Caller passed invalid wallet handle")
 	}
 
-	item, okCast := tmp.(ItemsDB)
+	item, okCast := tmp.(*C.char)
 	if !okCast {
-		return "", 208, errors.New(indyUtils.GetIndyError(208)) //WalletInputError: Input provided to wallet operations is considered not valid
+		return nil, 208, errors.New(indyUtils.GetIndyError(208)) //WalletInputError: Input provided to wallet operations is considered not valid
 	}
 
-	return item.Type, 0, nil
+	return unsafe.Pointer(item), 0, nil
 }
 
 //GetRecordValue - get record value
-func (e *pgMultiSchemaStorage) GetRecordValue(storageHandle int, recordHandle int) ([]byte, int, error) {
+func (e *pgMultiSchemaStorage) GetRecordValue(storageHandle int, recordHandle int) (wallet.RecordValue, int, error) {
+	searchHandleKey := strconv.Itoa(recordHandle)
+	tmp, ok := e.SearchHandlesValue.Get(searchHandleKey)
+	if !ok {
+		return wallet.RecordValue{}, 200, errors.New("WalletInvalidHandle: Caller passed invalid wallet handle")
+	}
+
+	rv, okCast := tmp.(wallet.RecordValue)
+	if !okCast {
+		return wallet.RecordValue{}, 208, errors.New(indyUtils.GetIndyError(208)) //WalletInputError: Input provided to wallet operations is considered not valid
+	}
+
+	return rv, 0, nil
+}
+
+//GetRecordTags - get record tags.
+func (e *pgMultiSchemaStorage) GetRecordTags(storageHandle int, recordHandle int) (unsafe.Pointer, int, error) {
 	searchHandleKey := strconv.Itoa(recordHandle)
 	tmp, ok := e.SearchHandles.Get(searchHandleKey)
 	if !ok {
 		return nil, 200, errors.New("WalletInvalidHandle: Caller passed invalid wallet handle")
 	}
 
+	db, err := e.GetDbFromHandle(storageHandle)
+	if err != nil {
+		return nil, 200, errors.New(indyUtils.GetIndyError(200)) //"WalletInvalidHandle: Caller passed invalid wallet handle"
+	}
+
 	item, okCast := tmp.(ItemsDB)
 	if !okCast {
 		return nil, 208, errors.New(indyUtils.GetIndyError(208)) //WalletInputError: Input provided to wallet operations is considered not valid
-	}
-	return item.Value, 0, nil
-}
-
-//GetRecordTags - get record tags.
-func (e *pgMultiSchemaStorage) GetRecordTags(storageHandle int, recordHandle int) (string, int, error) {
-	searchHandleKey := strconv.Itoa(recordHandle)
-	tmp, ok := e.SearchHandles.Get(searchHandleKey)
-	if !ok {
-		return "", 200, errors.New("WalletInvalidHandle: Caller passed invalid wallet handle")
-	}
-
-	db, err := e.GetDbFromHandle(storageHandle)
-	if err != nil {
-		return "", 200, errors.New(indyUtils.GetIndyError(200)) //"WalletInvalidHandle: Caller passed invalid wallet handle"
-	}
-
-	item, okCast := tmp.(ItemsDB)
-	if !okCast {
-		return "", 208, errors.New(indyUtils.GetIndyError(208)) //WalletInputError: Input provided to wallet operations is considered not valid
 	}
 
 	var tp TagsPlaintextDB
@@ -849,12 +885,12 @@ func (e *pgMultiSchemaStorage) GetRecordTags(storageHandle int, recordHandle int
 
 	errTp := db.Scopes(AddSchemaTable(item.WalletId, tp.TableName())).Where("item_id=?", item.Id).Find(&tps).Error
 	if errTp != nil {
-		return "", 210, errTp // WalletStorageError: Storage error occurred during wallet operation
+		return nil, 210, errTp // WalletStorageError: Storage error occurred during wallet operation
 	}
 
 	errTe := db.Scopes(AddSchemaTable(item.WalletId, te.TableName())).Where("item_id=?", item.Id).Find(&tes).Error
 	if errTe != nil {
-		return "", 210, errTe // WalletStorageError: Storage error occurred during wallet operation
+		return nil, 210, errTe // WalletStorageError: Storage error occurred during wallet operation
 	}
 
 	jsonObj := gabs.New()
@@ -868,31 +904,67 @@ func (e *pgMultiSchemaStorage) GetRecordTags(storageHandle int, recordHandle int
 
 	tags := jsonObj.String()
 
-	return tags, 0, nil
+	upTags := C.CString(tags)
+	e.SearchHandlesTags.Set(searchHandleKey, upTags)
+
+	return unsafe.Pointer(upTags), 0, nil
 }
 
 //FreeRecord - free search handle record
 func (e *pgMultiSchemaStorage) FreeRecord(storageHandle int, recordHandle int) error {
 	searchHandleKey := strconv.Itoa(recordHandle)
 	e.SearchHandles.Remove(searchHandleKey)
+
+	pName, okName := e.SearchHandlesName.Get(searchHandleKey)
+	if okName {
+		C.free(unsafe.Pointer(pName.(*C.char)))
+	}
+	e.SearchHandlesName.Remove(searchHandleKey)
+
+	pValue, okValue := e.SearchHandlesValue.Get(searchHandleKey)
+	if okValue {
+		rv, okCast := pValue.(wallet.RecordValue)
+		if okCast {
+			C.free(rv.Value)
+		}
+	}
+	e.SearchHandlesValue.Remove(searchHandleKey)
+
+	pType, okType := e.SearchHandlesType.Get(searchHandleKey)
+	if okType {
+		C.free(unsafe.Pointer(pType.(*C.char)))
+	}
+	e.SearchHandlesType.Remove(searchHandleKey)
+
+	pTags, okTags := e.SearchHandlesTags.Get(searchHandleKey)
+	if okTags {
+
+		upTags, okCast := pTags.(unsafe.Pointer)
+		if okCast {
+			C.free(upTags)
+		}
+
+	}
+	e.SearchHandlesName.Remove(searchHandleKey)
+
 	return nil
 }
 
 //GetStorageMetadata - gets metadata
-func (e *pgMultiSchemaStorage) GetStorageMetadata(storageHandle int) (string, int, int, error) { // (string , int, indycode, error)
+func (e *pgMultiSchemaStorage) GetStorageMetadata(storageHandle int) (unsafe.Pointer, int, int, error) { // (string , int, indycode, error)
 
 	handleKey := strconv.Itoa(storageHandle)
 	tmp, ok := e.MetadataHandles.Get(handleKey)
 	if !ok {
-		return "", 0, 212, errors.New(indyUtils.GetIndyError(212)) //"WalletItemNotFound: Requested wallet item not found"
+		return nil, 0, 212, errors.New(indyUtils.GetIndyError(212)) //"WalletItemNotFound: Requested wallet item not found"
 	}
 
-	metadata, okM := tmp.(MetadataDB)
+	metadata, okM := tmp.(*C.char)
 	if !okM {
-		return "", 0, 210, errors.New(indyUtils.GetIndyError(210)) //"WalletStorageError: Storage error occurred during wallet operation"
+		return nil, 0, 210, errors.New(indyUtils.GetIndyError(210)) //"WalletStorageError: Storage error occurred during wallet operation"
 	}
 
-	return metadata.Value, storageHandle, 0, nil
+	return unsafe.Pointer(metadata), storageHandle, 0, nil
 }
 
 //SetStorageMetadata - updates metadata for a wallet
@@ -919,6 +991,11 @@ func (e *pgMultiSchemaStorage) SetStorageMetadata(storageHandle int, metadata st
 //FreeStorageMetadata - frees storage ...
 func (e *pgMultiSchemaStorage) FreeStorageMetadata(storageHandle int, metadataHandle int) error {
 	searchHandleKey := strconv.Itoa(metadataHandle)
+
+	pMetadata, ok := e.MetadataHandles.Get(searchHandleKey)
+	if ok {
+		C.free(unsafe.Pointer(pMetadata.(*C.char)))
+	}
 	e.MetadataHandles.Remove(searchHandleKey)
 
 	return nil
@@ -1037,6 +1114,13 @@ func (e *pgMultiSchemaStorage) FetchSearchNext(storageHandle int, searchHandle i
 	item := items[counter]
 	handleId, handleKey := e.SearchHandleCounter.Get()
 	e.SearchHandles.Set(handleKey, item)
+	e.SearchHandlesName.Set(handleKey, C.CString(item.Name))
+	e.SearchHandlesValue.Set(handleKey, wallet.RecordValue{
+		Len:   len(item.Value),
+		Value: C.CBytes(item.Value),
+	})
+	e.SearchHandlesType.Set(handleKey, C.CString(item.Type))
+
 	return int(handleId), 0, nil
 }
 
@@ -1045,6 +1129,28 @@ func (e *pgMultiSchemaStorage) FreeSearch(storageHandle int, searchHandle int) e
 	searchHandleKey := strconv.Itoa(searchHandle)
 	e.SearchHandles.Remove(searchHandleKey)
 	e.SearchHandlesIterator.Remove(searchHandleKey)
+
+	pName, okName := e.SearchHandlesName.Get(searchHandleKey)
+	if okName {
+		C.free(unsafe.Pointer(pName.(*C.char)))
+	}
+	e.SearchHandlesName.Remove(searchHandleKey)
+
+	pValue, okValue := e.SearchHandlesValue.Get(searchHandleKey)
+	if okValue {
+		rv, okCast := pValue.(wallet.RecordValue)
+		if okCast {
+			C.free(rv.Value)
+		}
+	}
+	e.SearchHandlesValue.Remove(searchHandleKey)
+
+	pType, okType := e.SearchHandlesType.Get(searchHandleKey)
+	if okType {
+		C.free(unsafe.Pointer(pType.(*C.char)))
+	}
+	e.SearchHandlesType.Remove(searchHandleKey)
+
 	return nil
 }
 

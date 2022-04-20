@@ -12,12 +12,29 @@
 
 package indySDK
 
+/*
+#include <stdlib.h>
+*/
 import "C"
-import "github.com/joyride9999/IndySdkGoBindings/crypto"
+import (
+	"github.com/joyride9999/IndySdkGoBindings/crypto"
+	"encoding/json"
+	"errors"
+	"unsafe"
+)
 
 // CreateKey creates keys pair and stores in the wallet
 func CreateKey(wh int, key crypto.Key) (string, error) {
-	channel := crypto.CreateKey(wh, key)
+
+	jsonKey, err := json.Marshal(key)
+	if err != nil {
+		return "", errors.New("cant read json")
+	}
+	keyString := string(jsonKey)
+	upKey := unsafe.Pointer(C.CString(keyString))
+	defer C.free(upKey)
+
+	channel := crypto.CreateKey(wh, upKey)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -27,14 +44,23 @@ func CreateKey(wh int, key crypto.Key) (string, error) {
 
 // SetKeyMetadata saves/replaces the meta information for the giving key in the wallet
 func SetKeyMetadata(wh int, verkey string, metadata string) error {
-	channel := crypto.SetKeyMetadata(wh, verkey, metadata)
+
+	upVerKey := unsafe.Pointer(C.CString(verkey))
+	defer C.free(upVerKey)
+	upMetadata := unsafe.Pointer(C.CString(metadata))
+	defer C.free(upMetadata)
+
+	channel := crypto.SetKeyMetadata(wh, upVerKey, upMetadata)
 	result := <-channel
 	return result.Error
 }
 
 // GetKeyMetadata retrieves the meta information for the giving key in the wallet
 func GetKeyMetadata(wh int, verkey string) (string, error) {
-	channel := crypto.GetKeyMetadata(wh, verkey)
+
+	upVerKey := unsafe.Pointer(C.CString(verkey))
+	defer C.free(upVerKey)
+	channel := crypto.GetKeyMetadata(wh, upVerKey)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
@@ -44,7 +70,13 @@ func GetKeyMetadata(wh int, verkey string) (string, error) {
 
 // Sign signs a message with a key
 func Sign(wh int, signerVK string, messageRaw []uint8, messageLen uint32) ([]uint8, error) {
-	channel := crypto.Sign(wh, signerVK, messageRaw, messageLen)
+
+	upSignerVK := unsafe.Pointer(C.CString(signerVK))
+	defer C.free(upSignerVK)
+	upMessageRaw := unsafe.Pointer(C.CBytes(messageRaw))
+	defer C.free(upMessageRaw)
+
+	channel := crypto.Sign(wh, upSignerVK, upMessageRaw, messageLen)
 	result := <-channel
 	if result.Error != nil {
 		return []uint8(""), result.Error
@@ -54,7 +86,15 @@ func Sign(wh int, signerVK string, messageRaw []uint8, messageLen uint32) ([]uin
 
 // Verify signs a message with a key
 func Verify(signerVK string, messageRaw []uint8, messageLen uint32, signatureRaw []uint8, signatureLen uint32) (bool, error) {
-	channel := crypto.Verify(signerVK, messageRaw, messageLen, signatureRaw, signatureLen)
+
+	upSignerVK := unsafe.Pointer(C.CString(signerVK))
+	defer C.free(upSignerVK)
+	upMessageRaw := unsafe.Pointer(C.CBytes(messageRaw))
+	defer C.free(upMessageRaw)
+	upSignatureRaw := unsafe.Pointer(C.CBytes(signatureRaw))
+	defer C.free(upSignatureRaw)
+
+	channel := crypto.Verify(upSignerVK, upMessageRaw, messageLen, upSignatureRaw, signatureLen)
 	result := <-channel
 	if result.Error != nil {
 		return false, result.Error
@@ -64,7 +104,13 @@ func Verify(signerVK string, messageRaw []uint8, messageLen uint32, signatureRaw
 
 // AnonCrypt encrypts a message by anonymous-encryption scheme
 func AnonCrypt(recipientVK string, messageRaw []uint8, messageLen uint32) ([]uint8, error) {
-	channel := crypto.AnonCrypt(recipientVK, messageRaw, messageLen)
+
+	upRecipientVK := unsafe.Pointer(C.CString(recipientVK))
+	defer C.free(upRecipientVK)
+	upMessageRaw := unsafe.Pointer(C.CBytes(messageRaw))
+	defer C.free(upMessageRaw)
+
+	channel := crypto.AnonCrypt(upRecipientVK, upMessageRaw, messageLen)
 	result := <-channel
 	if result.Error != nil {
 		return []uint8(""), result.Error
@@ -74,7 +120,13 @@ func AnonCrypt(recipientVK string, messageRaw []uint8, messageLen uint32) ([]uin
 
 // AnonDecrypt decrypts a message by anonymous-encryption scheme
 func AnonDecrypt(wh int, recipientVK string, messageRaw []uint8, messageLen uint32) ([]uint8, error) {
-	channel := crypto.AnonDecrypt(wh, recipientVK, messageRaw, messageLen)
+
+	upRecipientVK := unsafe.Pointer(C.CString(recipientVK))
+	defer C.free(upRecipientVK)
+	upMessageRaw := unsafe.Pointer(C.CBytes(messageRaw))
+	defer C.free(upMessageRaw)
+
+	channel := crypto.AnonDecrypt(wh, upRecipientVK, upMessageRaw, messageLen)
 	result := <-channel
 	if result.Error != nil {
 		return []uint8(""), result.Error
@@ -84,7 +136,15 @@ func AnonDecrypt(wh int, recipientVK string, messageRaw []uint8, messageLen uint
 
 // PackMsg packs a message by encrypting the message and serializes it in a JWE-like format
 func PackMsg(wh int, messageRaw []uint8, messageLen uint32, receiverKeys string, sender string) ([]uint8, error) {
-	channel := crypto.PackMsg(wh, messageRaw, messageLen, receiverKeys, sender)
+
+	upMessageRaw := unsafe.Pointer(C.CBytes(messageRaw))
+	defer C.free(upMessageRaw)
+	upReceiverKeys := unsafe.Pointer(C.CString(receiverKeys))
+	defer C.free(upReceiverKeys)
+	upSender := unsafe.Pointer(C.CString(sender))
+	defer C.free(upSender)
+
+	channel := crypto.PackMsg(wh, upMessageRaw, messageLen, upReceiverKeys, upSender)
 	result := <-channel
 	if result.Error != nil {
 		return []uint8(""), result.Error
@@ -94,7 +154,11 @@ func PackMsg(wh int, messageRaw []uint8, messageLen uint32, receiverKeys string,
 
 // UnpackMsg packs a message by encrypting the message and serializes it in a JWE-like format
 func UnpackMsg(wh int, messageRaw []uint8, messageLen uint32) ([]uint8, error) {
-	channel := crypto.UnpackMsg(wh, messageRaw, messageLen)
+
+	upMessageRaw := unsafe.Pointer(C.CBytes(messageRaw))
+	defer C.free(upMessageRaw)
+
+	channel := crypto.UnpackMsg(wh, upMessageRaw, messageLen)
 	result := <-channel
 	if result.Error != nil {
 		return []uint8(""), result.Error

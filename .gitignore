@@ -1,0 +1,18 @@
+# Default ignored files
+/.idea/
+/shelf/
+/workspace.xml
+/out/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+lib/indy.dll
+lib/libeay32md.dll
+lib/libindy.dll
+lib/libindy.lib
+lib/libsodium.dll
+lib/libzmq.dll
+lib/ssleay32md.dll
+*.bak
