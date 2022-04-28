@@ -1,3 +1,14 @@
+/*
+// ******************************************************************
+// Purpose: Implements custom wallet storage in memory
+// Author:  angel.draghici@siemens.com
+// Notes:
+// Copyright (c): Siemens SRL
+// This work is licensed under the terms of the Apache License Version 2.0.  See
+// the LICENSE.txt file in the top-level directory.
+// ******************************************************************
+*/
+
 package indySDK
 
 /*
@@ -7,6 +18,7 @@ import "C"
 import (
 	"errors"
 	"github.com/Jeffail/gabs/v2"
+	"github.com/joyride9999/IndySdkGoBindings"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"github.com/joyride9999/IndySdkGoBindings/wallet"
 	cmap "github.com/orcaman/concurrent-map"
@@ -358,7 +370,7 @@ func (e *InMemoryStorage) OpenSearch(storageHandle int, recordType string, query
 		if e.StoredRecords[index].Type == recordType {
 			if wqlQuery != nil {
 				tagsParsed, _ := gabs.ParseJSON([]byte(e.StoredRecords[index].Tags))
-				if isIncluded(wqlQuery, tagsParsed) {
+				if indySDK.isIncluded(wqlQuery, tagsParsed) {
 					searchedRecords = append(searchedRecords, e.StoredRecords[index])
 					notFound = false
 				}
