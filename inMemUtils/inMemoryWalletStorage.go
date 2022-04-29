@@ -9,7 +9,7 @@
 // ******************************************************************
 */
 
-package indySDK
+package inMemUtils
 
 /*
 #include <stdlib.h>
@@ -18,7 +18,6 @@ import "C"
 import (
 	"errors"
 	"github.com/Jeffail/gabs/v2"
-	"github.com/joyride9999/IndySdkGoBindings"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"github.com/joyride9999/IndySdkGoBindings/wallet"
 	cmap "github.com/orcaman/concurrent-map"
@@ -68,11 +67,6 @@ type InMemoryStorage struct {
 	SearchHandleCounter   indyUtils.Counter
 }
 
-var iterator int
-
-//TODO: move this to separate folder
-//TODO: test it more...looks buggy
-
 func (e *InMemoryStorage) Create(storageName string, storageConfig string, credentialsJson string, metadata string) (int, error) {
 	_, isFound := e.MetadataHandles.Get(storageName)
 	if isFound == true {
@@ -121,7 +115,6 @@ func (e *InMemoryStorage) AddRecord(storageHandle int, recordType string, record
 	return 0, nil
 }
 
-//TODO: this looks buggy
 func (e *InMemoryStorage) UpdateRecordValue(storageHandle int, recordType string, recordId string, recordValue []byte) (int, error) {
 	for i := range e.StoredRecords {
 		if e.StoredRecords[i].Id == recordId && e.StoredRecords[i].Type == recordType {
@@ -190,7 +183,6 @@ func (e *InMemoryStorage) GetRecordHandle(storageHandle int, recordType string, 
 	var record StorageRecord
 	count := 0
 
-	//TODO: recheck this
 	for i := range e.StoredRecords {
 		if e.StoredRecords[i].Id == recordId && e.StoredRecords[i].Type == recordType {
 			count++
@@ -370,7 +362,7 @@ func (e *InMemoryStorage) OpenSearch(storageHandle int, recordType string, query
 		if e.StoredRecords[index].Type == recordType {
 			if wqlQuery != nil {
 				tagsParsed, _ := gabs.ParseJSON([]byte(e.StoredRecords[index].Tags))
-				if indySDK.isIncluded(wqlQuery, tagsParsed) {
+				if IsIncluded(wqlQuery, tagsParsed) {
 					searchedRecords = append(searchedRecords, e.StoredRecords[index])
 					notFound = false
 				}

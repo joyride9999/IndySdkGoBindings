@@ -14,17 +14,18 @@ package indySDK
 import (
 	"fmt"
 	"github.com/Jeffail/gabs/v2"
+	"github.com/joyride9999/IndySdkGoBindings/inMemUtils"
 	"github.com/joyride9999/IndySdkGoBindings/wallet"
 	"testing"
 )
 
 func TestRegisterWalletMemoryStorage(t *testing.T) {
 	// Initialize in-memory storage.
-	customStorage := NewInMemoryStorage()
+	customStorage := inMemUtils.NewInMemoryStorage()
 
 	type args struct {
 		StorageType string
-		Storage     *InMemoryStorage
+		Storage     *inMemUtils.InMemoryStorage
 	}
 	tests := []struct {
 		name    string
@@ -85,7 +86,7 @@ func TestMemStorageNonSecretsRecords(t *testing.T) {
 
 	// Initialize in memory storage.
 	storageType := "in-mem-storage"
-	customStorage := NewInMemoryStorage()
+	customStorage := inMemUtils.NewInMemoryStorage()
 
 	errStorage := RegisterWalletStorage(storageType, customStorage)
 	if errStorage != nil {
@@ -218,7 +219,7 @@ func TestMemStorageCredentialSearchProof(t *testing.T) {
 
 	// Register in memory storage for issuer.
 	inMemStorageType := "memoryStorage"
-	storage := NewInMemoryStorage()
+	storage := inMemUtils.NewInMemoryStorage()
 
 	errStorage := RegisterWalletStorage(inMemStorageType, storage)
 	if errStorage != nil {
