@@ -1,7 +1,8 @@
 # Indy SDK Go Bindings
 
 Go bindings for hyperledger indy sdk
-Installation go get github.com/joyride9999/IndySdkGoBindings
+Installation 
+go get github.com/joyride9999/IndySdkGoBindings
 
 ## Window usage
 - Install go (https://golang.org)
@@ -20,8 +21,7 @@ Installation go get github.com/joyride9999/IndySdkGoBindings
 ## TODOs
 - review db storage
 - optimization
-- testing
-- 
+
 ## LICENSE
 This work is licensed under the terms of the Apache License Version 2.0.  See the LICENSE.txt file in the top-level directory.
 Header files from "include/" folder were obtained from https://github.com/hyperledger/indy-sdk/tree/master/libindy/include and were 
