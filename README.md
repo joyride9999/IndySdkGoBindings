@@ -1,7 +1,7 @@
 # Indy SDK Go Bindings
 
 Go bindings for hyperledger indy sdk
-Installation 
+Installation <br>
 go get github.com/joyride9999/IndySdkGoBindings
 
 ## Window usage
