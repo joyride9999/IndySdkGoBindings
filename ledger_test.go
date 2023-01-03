@@ -235,7 +235,7 @@ func TestSubmitRequest(t *testing.T) {
 		return
 	}
 
-	getAttribRequest, errAttrib := prepareGetAttribReq(poolHandle, walletHandle, trusteeDid, did, "", `{"test":"name"}`, ""); if errAttrib != nil {
+	getAttribRequest, errAttrib := prepareGetAttribReq(poolHandle, walletHandle, trusteeDid, did, `{"test":"name"}`, "", ""); if errAttrib != nil {
 		t.Errorf("prepareGetAttribReq() error = '%v'", errAttrib)
 		return
 	}
@@ -607,8 +607,8 @@ func TestBuildAttribRequest(t *testing.T) {
 	}
 
 	type args struct {
-		Hash string
 		Raw string
+		Hash string
 		Enc string
 	}
 	tests := []struct {
@@ -616,15 +616,15 @@ func TestBuildAttribRequest(t *testing.T) {
 		args args
 		wantErr bool
 	}{
-		{"build-attrib-request-works-with-raw", args{Hash: "", Raw: raw, Enc: ""}, false},
-		{"build-attrib-request-works-with-hash", args{Hash: hash, Raw: "", Enc: ""}, false},
-		{"build-attrib-request-works-with-enc", args{Hash: "", Raw: "", Enc: enc}, false},
-		{"build-attrib-request-missed-attribute", args{Hash: "", Raw: "", Enc: ""}, true},
+		{"build-attrib-request-works-with-raw", args{Raw: raw, Hash: "", Enc: ""}, false},
+		{"build-attrib-request-works-with-hash", args{Raw: "", Hash: hash, Enc: ""}, false},
+		{"build-attrib-request-works-with-enc", args{Raw: "", Hash: "", Enc: enc}, false},
+		{"build-attrib-request-missed-attribute", args{Raw: "", Hash: "", Enc: ""}, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			requestAttrib, errBuild := BuildAttribRequest(did, targetDid, tt.args.Hash, tt.args.Raw, tt.args.Enc)
+			requestAttrib, errBuild := BuildAttribRequest(did, targetDid, tt.args.Raw, tt.args.Hash, tt.args.Enc)
 			hasError := errBuild != nil
 			if hasError != tt.wantErr {
 				t.Errorf("BuildAttribRequest() error = '%v'", errBuild)
@@ -691,8 +691,8 @@ func TestBuildGetAttribRequest(t *testing.T) {
 	}
 
 	type args struct {
-		Hash string
 		Raw string
+		Hash string
 		Enc string
 	}
 	tests := []struct {
@@ -700,10 +700,10 @@ func TestBuildGetAttribRequest(t *testing.T) {
 		args args
 		wantErr bool
 	}{
-		{"build-get-attrib-request-works-with-raw", args{Hash: "", Raw: raw, Enc: ""}, false},
-		{"build-get-attrib-request-works-with-hash", args{Hash: hash, Raw: "", Enc: ""}, false},
-		{"build-get-attrib-request-works-with-enc", args{Hash: "", Raw: "", Enc: enc}, false},
-		{"build-get-attrib-request-missed-attribute", args{Hash: "", Raw: "", Enc: ""}, true},
+		{"build-get-attrib-request-works-with-raw", args{Raw: raw, Hash: "", Enc: ""}, false},
+		{"build-get-attrib-request-works-with-hash", args{Raw: "", Hash: hash, Enc: ""}, false},
+		{"build-get-attrib-request-works-with-enc", args{Raw: "", Hash: "", Enc: enc}, false},
+		{"build-get-attrib-request-missed-attribute", args{Raw: "", Hash: "", Enc: ""}, true},
 	}
 
 	for _, tt := range tests {

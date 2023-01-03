@@ -240,8 +240,8 @@ func prepareGetNymReq(poolHandle int, walletHandle int, submitterDid string, tar
 }
 
 // prepareGetAttribReq Builds and sends ATTRIB request. Returns GET_ATTRIB request to be sent to ledger.
-func prepareGetAttribReq(poolHandle int, walletHandle int, submitterDid string, targetDid string, hash string, raw string, encrypted string) (string, error) {
-	attribRequest, errAttrib := BuildAttribRequest(targetDid, targetDid, hash, raw, encrypted); if errAttrib != nil {
+func prepareGetAttribReq(poolHandle int, walletHandle int, submitterDid string, targetDid string, raw string, hash string, encrypted string) (string, error) {
+	attribRequest, errAttrib := BuildAttribRequest(targetDid, targetDid, raw, hash, encrypted); if errAttrib != nil {
 		return "", errAttrib
 	}
 	_, errSign := SignAndSubmitRequest(poolHandle, walletHandle, targetDid, attribRequest); if errSign != nil {
