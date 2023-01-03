@@ -146,7 +146,7 @@ func BuildAttribRequest(submitterDid string, targetDid, hash string, raw string,
 }
 
 // BuildGetAttribRequest Builds a GET_ATTRIB request. Request to get information about an Attribute for the specified DID.
-func BuildGetAttribRequest(submitterDid string, targetDid, hash string, raw string, encrypted string) (string, error) {
+func BuildGetAttribRequest(submitterDid string, targetDid, raw string, hash string, encrypted string) (string, error) {
 
 	upSubmitterDid := unsafe.Pointer(GetOptionalValue(submitterDid))
 	defer C.free(upSubmitterDid)
@@ -159,7 +159,7 @@ func BuildGetAttribRequest(submitterDid string, targetDid, hash string, raw stri
 	upEncData := unsafe.Pointer(GetOptionalValue(encrypted))
 	defer C.free(upEncData)
 
-	channel := ledger.BuildGetAttribRequest(upSubmitterDid, upTargetDid, upHash, upRawData, upEncData)
+	channel := ledger.BuildGetAttribRequest(upSubmitterDid, upTargetDid, upRawData, upHash, upEncData)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error
