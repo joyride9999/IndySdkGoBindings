@@ -866,8 +866,8 @@ func BuildGetAttribRequest(submitterDid, targetDid, hash, raw, enc unsafe.Pointe
 
 			:param submitter_did: (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
 		    :param target_did: Target DID as base58-encoded string for 16 or 32 bit DID value.
-		    :param xhash: (Optional) Requested attribute name.
-		    :param raw: (Optional) Requested attribute hash.
+		    :param raw: (Optional) Requested attribute name.
+		    :param hash: (Optional) Requested attribute hash.
 		    :param enc: (Optional) Requested attribute encrypted value.
 		    :return: Request result as json.
 	*/
@@ -876,8 +876,8 @@ func BuildGetAttribRequest(submitterDid, targetDid, hash, raw, enc unsafe.Pointe
 	res := C.indy_build_get_attrib_request(commandHandle,
 		(*C.char)(submitterDid),
 		(*C.char)(targetDid),
-		(*C.char)(hash),
 		(*C.char)(raw),
+		(*C.char)(hash),
 		(*C.char)(enc),
 		(C.cb_buildRequest)(unsafe.Pointer(C.buildRequestCB)))
 
