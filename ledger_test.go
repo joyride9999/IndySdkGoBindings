@@ -708,7 +708,7 @@ func TestBuildGetAttribRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			requestAttrib, errBuild := BuildGetAttribRequest(did, targetDid, tt.args.Raw, tt.args.Hash, tt.args.Enc)
+			requestAttrib, errBuild := BuildGetAttribRequest(did, targetDid, tt.args.Hash, tt.args.Raw, tt.args.Enc)
 			hasError := errBuild != nil
 			if hasError != tt.wantErr {
 				t.Errorf("BuildGetAttribRequest() error = '%v'", errBuild)
