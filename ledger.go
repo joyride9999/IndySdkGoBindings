@@ -124,7 +124,7 @@ func BuildNymRequest(submitterDid string, targetDid string, targetVerkey string,
 }
 
 // BuildAttribRequest Builds an ATTRIB request. Request to add attribute to a NYM record.
-func BuildAttribRequest(submitterDid string, targetDid, hash string, raw string, encrypted string) (string, error) {
+func BuildAttribRequest(submitterDid string, targetDid, raw string, hash string, encrypted string) (string, error) {
 
 	upSubmitterDid := unsafe.Pointer(C.CString(submitterDid))
 	defer C.free(upSubmitterDid)
@@ -137,7 +137,7 @@ func BuildAttribRequest(submitterDid string, targetDid, hash string, raw string,
 	upEncData := unsafe.Pointer(GetOptionalValue(encrypted))
 	defer C.free(upEncData)
 
-	channel := ledger.BuildAttribRequest(upSubmitterDid, upTargetDid, upHash, upRawData, upEncData)
+	channel := ledger.BuildAttribRequest(upSubmitterDid, upTargetDid, upRawData, upHash, upEncData)
 	result := <-channel
 	if result.Error != nil {
 		return "", result.Error

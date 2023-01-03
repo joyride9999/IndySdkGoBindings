@@ -818,7 +818,7 @@ func BuildNymRequest(submitterDid, targetDid, verkey, alias, role unsafe.Pointer
 }
 
 // BuildAttribRequest Builds an ATTRIB request. Request to add attribute to a NYM record.
-func BuildAttribRequest(submitterDid, targetDid, hash, raw, enc unsafe.Pointer) chan indyUtils.IndyResult {
+func BuildAttribRequest(submitterDid, targetDid, raw, hash, enc unsafe.Pointer) chan indyUtils.IndyResult {
 
 	// Prepare the call parameters
 	handle, future := indyUtils.NewFutureCommand()
