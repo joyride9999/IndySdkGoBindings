@@ -12,7 +12,7 @@
 package indySDK
 
 import (
-	"github.com/joyride9999/IndySdkGoBindings/dbUtils"
+	"github.com/joyride9999/IndySdkGoBindings/dbutils"
 	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"github.com/joyride9999/IndySdkGoBindings/wallet"
 	"fmt"
