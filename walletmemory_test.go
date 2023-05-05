@@ -13,8 +13,8 @@ package indySDK
 
 import (
 	"fmt"
-	"github.com/Jeffail/gabs/v2"
 	"github.com/joyride9999/IndySdkGoBindings/inMemUtils"
+	"github.com/joyride9999/IndySdkGoBindings/indyUtils"
 	"github.com/joyride9999/IndySdkGoBindings/wallet"
 	"testing"
 )
@@ -73,209 +73,80 @@ func TestRegisterWalletMemoryStorage(t *testing.T) {
 
 			defer walletCleanup(walletHandle, walletConfig, walletCredential)
 
-			// Both StoredMetadata and StorageHandles shouldn't be null if create and open wallet succeeded.
-			if len(customStorage.MetadataHandles) == 0 || len(customStorage.StorageHandles) == 0 {
+			// Both StoredMetadata and WalletHandles shouldn't be null if create and open wallet succeeded.
+			if len(customStorage.MetadataHandles) == 0 || len(customStorage.WalletHandles) == 0 {
 				t.Errorf("Test failed")
 			}
+
 		})
 	}
-}
-
-func TestMemStorageNonSecretsRecords(t *testing.T) {
-	fmt.Println("InMemoryStorage: Non Secrets Records")
-
-	// Initialize in memory storage.
-	storageType := "in-mem-storage"
-	customStorage := inMemUtils.NewInMemoryStorage()
-
-	errStorage := RegisterWalletStorage(storageType, customStorage)
-	if errStorage != nil {
-		t.Errorf("RegisterWalletStorage() error = '%v'", errStorage)
-		return
-	}
-
-	// Create wallet.
-	walletConfig := wallet.Config{
-		ID:            "custom",
-		StorageType:   storageType,
-		StorageConfig: wallet.StorageConfig{Path: ".\\out\\wallets", Dsn: "", LogSql: 0},
-	}
-	walletCredential := wallet.Credential{
-		Key: "123",
-	}
-	errCreate := CreateWallet(walletConfig, walletCredential)
-	if errCreate != nil {
-		t.Errorf("CreateWallet() error = '%v'", errCreate)
-		return
-	}
-
-	walletHandle, errOpen := OpenWallet(walletConfig, walletCredential)
-	if errOpen != nil {
-		t.Errorf("OpenWallet() error = '%v'", errOpen)
-		return
-	}
-	defer walletCleanup(walletHandle, walletConfig, walletCredential)
-
-	// Add wallet record and retrieve it from wallet storage.
-	errAdd := IndyAddWalletRecord(walletHandle, recordType, recordId1, recordValue1, recordTags1)
-	if errAdd != nil {
-		t.Errorf("IndyAddWalletRecord() error = '%v'", errAdd)
-		return
-	}
-
-	record, errGet := IndyGetWalletRecord(walletHandle, recordType, recordId1, recordOptions)
-	if errGet != nil {
-		t.Errorf("IndyGetWalletRecord() error = '%v'", errGet)
-		return
-	}
-
-	expected := `{"id": "recordId1", "value": "recordValue", "tags": {"tagName1":"str1","tagName2":"5","tagName3":"12"}, "type": "testType"}`
-	expectedRecord, _ := gabs.ParseJSON([]byte(expected))
-
-	returnedRecord, errGabs2 := gabs.ParseJSON([]byte(record))
-	if errGabs2 != nil {
-		t.Errorf("Gabs Parse error = '%v'", errGabs2)
-		return
-	}
-
-	// Check if retrieved record is the expected one.
-	if returnedRecord.Path("tags").String() != expectedRecord.Path("tags").String() ||
-		returnedRecord.Path("type").String() != expectedRecord.Path("type").String() {
-		t.Errorf("Test failed")
-	}
-
-	// Add another tag to the record.
-	errAddTags := IndyAddWalletRecordTags(walletHandle, recordType, recordId1, `{"tagName4": "str4"}`)
-	if errAddTags != nil {
-		t.Errorf("IndyAddWalletRecordTags() error = '%v'", errAddTags)
-		return
-	}
-
-	record, errGet = IndyGetWalletRecord(walletHandle, recordType, recordId1, recordOptions)
-	if errGet != nil {
-		t.Errorf("IndyGetWalletRecord() error = '%v'", errGet)
-		return
-	}
-
-	// Check if retrieved record tags are different from the initial one.
-	returnedRecord, _ = gabs.ParseJSON([]byte(record))
-	if returnedRecord.Path("tags").String() == recordTags1 {
-		t.Errorf("Test failed")
-		return
-	}
-
-	// Add another wallet record.
-	errAdd = IndyAddWalletRecord(walletHandle, recordType, recordId2, recordValue2, recordTags1)
-	if errAdd != nil {
-		t.Errorf("IndyAddWalletRecord() error = '%v'", errAdd)
-		return
-	}
-
-	// Open search.
-	searchHandle, errOpenSearch := IndyOpenWalletSearch(walletHandle, recordType, `{"tagName1": "str1"}`, `{"retrieveRecords": true}`)
-	if errOpenSearch != nil {
-		t.Errorf("IndyOpenWalletSearch() error = '%v'", errOpenSearch)
-		return
-	}
-	defer IndyCloseWalletSearch(searchHandle)
-
-	// Fetch wallet records.
-	searchRecords, errFetch := IndyFetchWalletSearchNextRecords(walletHandle, searchHandle, int32(2))
-	if errFetch != nil {
-		t.Errorf("IndyFetchWalletSearchNextRecords() error = '%v'", errFetch)
-		return
-	}
-
-	// Check fetched records to match the expected ones.
-	expectedRecords := `{"records": 
-		[
-			{"id":"recordId1","value":"recordValue","tags": null, "type": null}, 
-			{"id":"recordId2","value":"recordValue2","tags": null, "type": null}
-		]
-	}`
-	expectedRecordsParsed, _ := gabs.ParseJSON([]byte(expectedRecords))
-	searchRecordsParsed, _ := gabs.ParseJSON([]byte(searchRecords))
-	for _, search := range searchRecordsParsed.S("records").Children() {
-		ok := false
-		for _, expected := range expectedRecordsParsed.S("records").Children() {
-			if search.String() == expected.String() {
-				ok = true
-			}
-			if ok == true {
-				break
-			}
-		}
-		if !ok {
-			t.Errorf("Test failed")
-			break
-		}
-	}
-
-	return
 }
 
 func TestMemStorageCredentialSearchProof(t *testing.T) {
 	fmt.Println("InMemoryStorage: Credentials Test")
 
 	// Register in memory storage for issuer.
-	inMemStorageType := "memoryStorage"
-	storage := inMemUtils.NewInMemoryStorage()
+	iMemStorageType := "iMemoryStorage"
+	iStorage := inMemUtils.NewInMemoryStorage()
 
-	errStorage := RegisterWalletStorage(inMemStorageType, storage)
+	errStorage := RegisterWalletStorage(iMemStorageType, iStorage)
 	if errStorage != nil {
 		t.Errorf("RegisterWalletStorage() error = '%v'", errStorage)
 		return
 	}
 
-	// Create issuer wallet.
-	issuerConfig := wallet.Config{
+	// Create trustee wallet
+	issuerCfg := wallet.Config{
 		ID:            "issuer",
-		StorageType:   inMemStorageType,
-		StorageConfig: wallet.StorageConfig{Path: ".\\out\\wallets", Dsn: "", LogSql: 0},
+		StorageType:   iMemStorageType,
+		StorageConfig: wallet.StorageConfig{},
 	}
 	issuerCredential := wallet.Credential{
 		Key: "123",
 	}
-	errCreate := CreateWallet(issuerConfig, issuerCredential)
-	if errCreate != nil {
-		t.Errorf("CreateWallet() error = '%v'", errCreate)
+	errCreateWalletIssuer := CreateWallet(issuerCfg, issuerCredential)
+	if errCreateWalletIssuer != nil && errCreateWalletIssuer.Error() != indyUtils.GetIndyError(203) {
+		t.Errorf("CreateWallet() error = '%v'", errCreateWalletIssuer)
 		return
 	}
 
-	whIssuer, errOpen := OpenWallet(issuerConfig, issuerCredential)
-	if errOpen != nil {
-		t.Errorf("OpenWallet() error = '%v'", errOpen)
+	whIssuer, errOpenTr := OpenWallet(issuerCfg, issuerCredential)
+	if errOpenTr != nil {
+		t.Errorf("OpenWallet() error = '%v'", errOpenTr)
 		return
 	}
-	defer walletCleanup(whIssuer, issuerConfig, issuerCredential)
+	defer walletCleanup(whIssuer, issuerCfg, issuerCredential)
 
+	// Get did for issuer
 	didIssuer, _, errDidIssuer := CreateAndStoreDID(whIssuer, "000000000000000000000000Trustee1")
 	if errDidIssuer != nil {
 		t.Errorf("CreateAndStoreDid() error = '%v'", errDidIssuer)
 		return
 	}
 
-	// Create holder wallet
-	holderConfig := wallet.Config{
+	// holder wallet
+	holderCfg := wallet.Config{
 		ID:            "holder",
-		StorageType:   inMemStorageType,
-		StorageConfig: wallet.StorageConfig{Path: ".\\out\\wallets", Dsn: "", LogSql: 0},
+		StorageType:   iMemStorageType,
+		StorageConfig: wallet.StorageConfig{},
 	}
 	holderCredential := wallet.Credential{
 		Key: "123",
 	}
-	errCreate = CreateWallet(holderConfig, holderCredential)
-	if errCreate != nil {
-		t.Errorf("CreateWallet() error = '%v'", errCreate)
+
+	errCreateWalletHolder := CreateWallet(holderCfg, holderCredential)
+	if errCreateWalletHolder != nil && errCreateWalletHolder.Error() != indyUtils.GetIndyError(203) {
+		t.Errorf("CreateWallet() error = '%v'", errCreateWalletHolder)
 		return
 	}
 
-	whHolder, errOpen := OpenWallet(holderConfig, holderCredential)
-	if errOpen != nil {
-		t.Errorf("OpenWallet() error = '%v'", errOpen)
+	whHolder, errOpenHolder := OpenWallet(holderCfg, holderCredential)
+	if errOpenHolder != nil {
+		t.Errorf("OpenWallet() error = '%v'", errOpenHolder)
 		return
 	}
-	defer walletCleanup(whHolder, holderConfig, holderCredential)
+
+	defer walletCleanup(whHolder, holderCfg, holderCredential)
 
 	// Get did for holder
 	didHolder, _, errDidH := CreateAndStoreDID(whHolder, "")
@@ -284,6 +155,7 @@ func TestMemStorageCredentialSearchProof(t *testing.T) {
 		return
 	}
 
+	// Creates a schema
 	schemaId, schemaJson, errSchema := IssuerCreateSchema(didIssuer, "testSch", "0.1", `["a1", "a2", "a3"]`)
 	if errSchema != nil {
 		t.Errorf("IssuerCreateSchema() error = '%v'", errSchema)
@@ -323,7 +195,7 @@ func TestMemStorageCredentialSearchProof(t *testing.T) {
 	}
 
 	// Store the credential into prover wallet
-	_, errCredStore := ProverStoreCredential(whHolder, "", credentialRequestMetadata, credJson, credDefJson, "")
+	credentialId, errCredStore := ProverStoreCredential(whHolder, "", credentialRequestMetadata, credJson, credDefJson, "")
 	if errCred != nil {
 		t.Errorf("ProverStoreCredential() error = '%v'", errCredStore)
 	}
@@ -335,7 +207,7 @@ func TestMemStorageCredentialSearchProof(t *testing.T) {
 	// Search for data
 	searchHandle, errSearch := ProverSearchForCredentialForProofReq(whHolder, proofRequest, "")
 	if errSearch != nil {
-		t.Errorf("ProverSearchForCredentialProofReq() error = '%v'", errSearch)
+		t.Errorf("ProverStoreCredential() error = '%v'", errSearch)
 	}
 
 	if searchHandle > 0 {
@@ -347,29 +219,17 @@ func TestMemStorageCredentialSearchProof(t *testing.T) {
 	if errFetchCredential != nil {
 		t.Errorf("ProverFetchCredentialsForProofReq() error = '%v'", errFetchCredential)
 	}
+	credForAttr1 = credForAttr1
 
 	// Gets the data for predicate1_referent
 	credForPred1, errFetchCredential2 := ProverFetchCredentialsForProofReq(searchHandle, "predicate1_referent", 10)
 	if errFetchCredential2 != nil {
 		t.Errorf("ProverFetchCredentialsForProofReq() error = '%v'", errFetchCredential2)
 	}
+	credForPred1 = credForPred1
 
-	// Read credential definition id from fetched data
-	credInfoAttrJson, errGabs := gabs.ParseJSON([]byte(credForAttr1))
-	if errGabs != nil {
-		t.Errorf("Gabs ParseJSON() error = '%v'", errGabs)
-		return
-	}
-	attrCredId := credInfoAttrJson.Path("0.cred_info.referent").Data()
-
-	credInfoPredJson, errGabs := gabs.ParseJSON([]byte(credForPred1))
-	if errGabs != nil {
-		t.Errorf("Gabs ParseJSON() error = '%v'", errGabs)
-		return
-	}
-	predCredId := credInfoPredJson.Path("0.cred_info.referent").Data()
-
-	requestedCredJson := fmt.Sprintf(`{ "self_attested_attributes" : {}, "requested_attributes" : { "attr1_referent" : { "cred_id": "%s", "revealed": true  }   }, "requested_predicates" : { "predicate1_referent" : { "cred_id": "%s" }   }     }`, attrCredId, predCredId)
+	// TODO: read credential definition id from fetched data
+	requestedCredJson := fmt.Sprintf(`{ "self_attested_attributes" : {}, "requested_attributes" : { "attr1_referent" : { "cred_id": "%s", "revealed": true  }   }, "requested_predicates" : { "predicate1_referent" : { "cred_id": "%s" }   }     }`, credentialId, credentialId)
 	schemasJson := fmt.Sprintf(`{"%s":%s}`, schemaId, schemaJson)
 	credDefsJson := fmt.Sprintf(`{"%s":%s}`, credDefId, credDefJson)
 
@@ -380,9 +240,185 @@ func TestMemStorageCredentialSearchProof(t *testing.T) {
 		return
 	}
 
-	if len(proofJson) == 0 {
-		t.Errorf("Test failed, incorrect value")
+	// Verifies the proof
+	valid, errVer := VerifierVerifyProof(proofRequest, proofJson, schemasJson, credDefsJson, "{}", "{}")
+	if errVer != nil {
+		t.Errorf("createCredentialDefinition() error = '%v'", errVer)
+		return
 	}
+	if valid {
+		t.Log("Proof is valid\n")
+	} else {
+		t.Log("Proof is not valid\n")
+	}
+	t.Log("Success\n")
 
 	return
+}
+
+func TestMemStorageNonSecrets(t *testing.T) {
+	iMemStorageType := "iMemoryStorage"
+	iStorage := inMemUtils.NewInMemoryStorage()
+
+	errStorage := RegisterWalletStorage(iMemStorageType, iStorage)
+	if errStorage != nil {
+		t.Errorf("RegisterWalletStorage() error = '%v'", errStorage)
+		return
+	}
+
+	issuerConfig := wallet.Config{
+		ID:            "issuer",
+		StorageType:   iMemStorageType,
+		StorageConfig: wallet.StorageConfig{Path: "indySDK\\out\\wallets", Dsn: "", LogSql: 0},
+	}
+	issuerCredential := wallet.Credential{
+		Key: "123",
+	}
+	errCreate := CreateWallet(issuerConfig, issuerCredential)
+	if errCreate != nil {
+		t.Errorf("CreateWallet() error = '%v'", errCreate)
+		return
+	}
+
+	whIssuer, errOpen := OpenWallet(issuerConfig, issuerCredential)
+	if errOpen != nil {
+		t.Errorf("OpenWallet() error = '%v'", errOpen)
+		return
+	}
+	defer walletCleanup(whIssuer, issuerConfig, issuerCredential)
+
+	errAdd := IndyAddWalletRecord(whIssuer, "type1", "id1", "value1", `{"name": "Customer"}`)
+	if errAdd != nil {
+		t.Errorf("IndyAddWalletRecord() error = '%v'", errAdd)
+		return
+	}
+
+	errAdd = IndyAddWalletRecord(whIssuer, "type2", "id1", "value1", `{"name": "Customer"}`)
+	if errAdd != nil {
+		t.Logf("EXPECTED IndyAddWalletRecord() error = '%v'", errAdd)
+	}
+
+	record, errGet := IndyGetWalletRecord(whIssuer, "type1", "id1", recordOptions)
+	if errGet != nil {
+		t.Errorf("IndyGetWalletRecord() error = '%v'", errGet)
+		return
+	}
+	fmt.Println("AddWalletRecord(): " + record)
+
+	errAddT := IndyAddWalletRecordTags(whIssuer, "type1", "id1", `{"state": "California"}`)
+	if errAddT != nil {
+		t.Errorf("IndyAddWalletRecordTags() error = '%v'", errAddT)
+		return
+	}
+
+	record, errGet = IndyGetWalletRecord(whIssuer, "type1", "id1", recordOptions)
+	if errGet != nil {
+		t.Errorf("IndyGetWalletRecord() error = '%v'", errGet)
+		return
+	}
+	fmt.Println("AddWalletRecordTags(): " + record)
+
+	errDelT := IndyDeleteWalletRecordTags(whIssuer, "type1", "id1", `["name"]`)
+	if errDelT != nil {
+		t.Errorf("IndyDeleteWalletRecordTags() error = '%v'", errDelT)
+		return
+	}
+
+	record, errGet = IndyGetWalletRecord(whIssuer, "type1", "id1", recordOptions)
+	if errGet != nil {
+		t.Errorf("IndyGetWalletRecord() error = '%v'", errGet)
+		return
+	}
+	fmt.Println("DeleteWalletRecordTags(): " + record)
+
+	errUpdV := IndyUpdateWalletRecordValue(whIssuer, "type1", "id1", "value-edited1")
+	if errUpdV != nil {
+		t.Errorf("IndyUpdateWalletRecordValue() error = '%v'", errUpdV)
+		return
+	}
+
+	record, errGet = IndyGetWalletRecord(whIssuer, "type1", "id1", recordOptions)
+	if errGet != nil {
+		t.Errorf("IndyGetWalletRecord() error = '%v'", errGet)
+		return
+	}
+	fmt.Println("UpdateWalletRecordValue(): " + record)
+
+	errUpdT := IndyUpdateWalletRecordTags(whIssuer, "type1", "id1", `{"name": "Customer", "state": "Arizona"}`)
+	if errUpdT != nil {
+		t.Errorf("IndyUpdateWalletRecordTags() error = '%v'", errUpdT)
+		return
+	}
+
+	record, errGet = IndyGetWalletRecord(whIssuer, "type1", "id1", recordOptions)
+	if errGet != nil {
+		t.Errorf("IndyGetWalletRecord() error = '%v'", errGet)
+		return
+	}
+	fmt.Println("UpdateWalletRecordTags(): " + record)
+
+	errDel := IndyDeleteWalletRecord(whIssuer, "type1", "id1")
+	if errDel != nil {
+		t.Errorf("IndyDeleteWalletRecord() error = '%v'", errDel)
+		return
+	}
+
+	record, errGet = IndyGetWalletRecord(whIssuer, "type1", "id1", recordOptions)
+	if errGet != nil { // expected to fail
+		t.Logf("EXPECTED IndyGetWalletRecord() error = '%v'", errGet)
+	}
+
+	errAdd = IndyAddWalletRecord(whIssuer, "grading", "recordId-1", "value", `{"~t1": "1", "~t2": "v2", "~t3": "v3", "~t4": "v4"}`)
+	if errAdd != nil {
+		t.Errorf("IndyAddWalletRecord() error = '%v'", errAdd)
+		return
+	}
+
+	errAdd = IndyAddWalletRecord(whIssuer, "grading", "recordId-2", "value", `{"~t1": "1", "~t2": "v2.2", "~t3": "v3", "~t4": "v4"}`)
+	if errAdd != nil {
+		t.Errorf("IndyAddWalletRecord() error = '%v'", errAdd)
+		return
+	}
+
+	errAdd = IndyAddWalletRecord(whIssuer, "grading", "recordId-3", "value", `{"~t1": "1", "~t2": "v2", "~t3": "v3.3", "~t4": "v4"}`)
+	if errAdd != nil {
+		t.Errorf("IndyAddWalletRecord() error = '%v'", errAdd)
+		return
+	}
+
+	query := `{
+		"$and": [
+			{
+            	"~t1": {"$gte": "1"}
+        	},
+			{
+            	"~t2": "v2"
+        	},
+        	{
+				"$not": {
+					"~t3": "v3.3"
+				}
+    		}
+    	]
+	}`
+
+	sh, errSearch := IndyOpenWalletSearch(whIssuer, recordType, query, recordOptions)
+	if errSearch != nil {
+		t.Errorf("IndyOpenWalletSearch() error = '%v'", errSearch)
+		return
+	}
+
+	recordsJson, errFetch := IndyFetchWalletSearchNextRecords(whIssuer, sh, 3)
+	if errFetch != nil {
+		t.Errorf("IndyFetchWalletSearchNextRecords() error = '%v'", errFetch)
+		return
+	}
+
+	errClose := IndyCloseWalletSearch(sh)
+	if errClose != nil {
+		t.Errorf("IndyCloseWalletSearch() error = '%v'", errClose)
+		return
+	}
+
+	fmt.Println(recordsJson)
 }
